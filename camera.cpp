@@ -165,9 +165,12 @@ int main()
         return EXIT_FAILURE;
     }
 
-    std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});
+    std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::StillCapture});
     StreamConfiguration &streamConfig = config->at(0);
     std::cout << "Default viewfinder configuration is: " << streamConfig.toString() << std::endl;
+
+    streamConfig.size.width = 128;
+    streamConfig.size.height = 128;
 
     config->validate();
     std::cout << "Validated viewfinder configuration is: " << streamConfig.toString() << std::endl;
