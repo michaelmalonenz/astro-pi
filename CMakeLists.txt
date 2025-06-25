@@ -26,6 +26,7 @@ add_executable(astro-pi
     camera.cpp
     event_loop.cpp
     image.cpp
+    ssd1351.cpp
 )
 
 add_subdirectory(spidev-lib)
