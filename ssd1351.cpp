@@ -1,29 +1,97 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <spidev_lib++.h>
+#include <wiringPi.h>
+#include "ssd1351.hpp"
 
 static spi_config_t spi_config;
 static uint8_t tx_buffer[32];
 static uint8_t rx_buffer[32];
 
-namespace astro_pi {
-    void init_device()
-    {
-        SPI *mySPI = NULL;
-        spi_config.mode = 0;
-        spi_config.speed = 1000000;
-        spi_config.delay = 0;
-        spi_config.bits_per_word = 8;
-        mySPI = new SPI("/dev/spidev0.0", &spi_config);
-        if (mySPI->begin())
-        {
-            sprintf((char *)tx_buffer, "hello world");
-            printf("sending %s, to spidev2.0 in full duplex \n ", (char *)tx_buffer);
-            mySPI->xfer(tx_buffer, strlen((char *)tx_buffer), rx_buffer, strlen((char *)tx_buffer));
-            printf("rx_buffer=%s\n", (char *)rx_buffer);
-            // mySPI->end();
-            delete mySPI;
-        }
-    }
+
+Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
+    : m_cs(cs), m_dc(dc), m_rst(rst)
+{
+    spi_config.mode = 0;
+    spi_config.speed = 8000000;
+    spi_config.delay = 0;
+    spi_config.bits_per_word = 8;
+    this->m_spi = std::make_unique<SPI>(spi_dev, &spi_config);
+    this->m_spi->begin();
+    wiringPiSetupGpio();
+
+    // I don't know if either of these is correct
+    pinMode(this->m_cs, OUTPUT);
+    // pullUpDnControl(this->m_cs, PUD_DOWN);
+
+    pinMode(this->m_dc, OUTPUT);
+    // pullUpDnControl(this->m_dc, PUD_DOWN);
+
+    // INIT DISPLAY ------------------------------------------------------------
+    this->setChipSelect(true);
+    this->sendCommand(SSD1351_CMD_COMMANDLOCK, 1, 0x12); // Set command lock, 1 arg
+    this->sendCommand(SSD1351_CMD_COMMANDLOCK, 1, 0xB1); // Set command lock, 1 arg
+    this->sendCommand(SSD1351_CMD_DISPLAYOFF, 0); // Display off, no args
+    this->sendCommand(SSD1351_CMD_CLOCKDIV, 1, 0xF1); // 7:4 = Oscillator Freq, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
+    this->sendCommand(SSD1351_CMD_MUXRATIO, 1, 127);
+    this->sendCommand(SSD1351_CMD_DISPLAYOFFSET, 1, 0x0);
+    this->sendCommand(SSD1351_CMD_SETGPIO, 1, 0x00);
+    this->sendCommand(SSD1351_CMD_FUNCTIONSELECT, 1, 0x01); // internal (diode drop)
+    this->sendCommand(SSD1351_CMD_PRECHARGE, 1, 0x32);
+    this->sendCommand(SSD1351_CMD_VCOMH, 1, 0x05);
+    this->sendCommand(SSD1351_CMD_NORMALDISPLAY, 0);
+    this->sendCommand(SSD1351_CMD_CONTRASTABC, 3, 0xC8, 0x80, 0xC8);
+    this->sendCommand(SSD1351_CMD_CONTRASTMASTER, 1, 0x0F);
+    this->sendCommand(SSD1351_CMD_SETVSL, 3, 0xA0, 0xB5, 0x55);
+    this->sendCommand(SSD1351_CMD_PRECHARGE2, 1, 0x01);
+    this->sendCommand(SSD1351_CMD_DISPLAYON, 0);  // Main screen turn on
+    this->setChipSelect(false);
 }
+
+void Ssd1351::drawImage(const uint8_t *imageData, int dataLength)
+{}
+
+void Ssd1351::sendCommand(uint8_t byte)
+{
+    digitalWrite(this->m_dc, LOW);
+    this->m_spi->write(&byte, 1);
+    digitalWrite(this->m_dc, HIGH);
+}
+
+void Ssd1351::sendCommand(uint8_t byte, uint8_t arg1)
+{
+    uint8_t buffer[3] = {byte, arg1};
+    digitalWrite(this->m_dc, LOW);
+    this->m_spi->write(buffer, 2);
+    digitalWrite(this->m_dc, HIGH);
+}
+
+void Ssd1351::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2)
+{
+    uint8_t buffer[3] = {byte, arg1, arg2};
+    digitalWrite(this->m_dc, LOW);
+    this->m_spi->write(buffer, 3);
+    digitalWrite(this->m_dc, HIGH);
+}
+
+void Ssd1351::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4)
+{
+    uint8_t buffer[5] = {byte, arg1, arg2, arg3, arg4};
+    digitalWrite(this->m_dc, LOW);
+    this->m_spi->write(buffer, 5);
+    digitalWrite(this->m_dc, HIGH);
+}
+
+void Ssd1351::setChipSelect(bool asserted)
+{
+    if (asserted)
+        digitalWrite(this->m_cs, LOW);
+    else
+        digitalWrite(this->m_cs, HIGH);
+}
+
+Ssd1351::~Ssd1351()
+{
+    this->m_spi.reset();
+}
+

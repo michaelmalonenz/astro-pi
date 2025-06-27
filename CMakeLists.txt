@@ -31,8 +31,6 @@ add_executable(astro-pi
 
 add_subdirectory(spidev-lib)
 
-target_link_libraries(astro-pi PkgConfig::LIBEVENT PkgConfig::LIBCAMERA spidev-lib++)
-target_link_libraries(astro-pi )
-# target_link_libraries(astro-pi PRIVATE Threads::Threads camera camera-base)
+target_link_libraries(astro-pi PRIVATE PkgConfig::LIBEVENT PkgConfig::LIBCAMERA spidev-lib++ wiringPi)
 include_directories(${CMAKE_SOURCE_DIR} ${LIBCAMERA_INCLUDE_DIRS} ${LIBEVENT_INCLUDE_DIRS})
 target_include_directories(astro-pi PRIVATE "/usr/include/libcamera")
