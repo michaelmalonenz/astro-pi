@@ -10,6 +10,7 @@
 #include <libcamera/libcamera.h>
 #include "event_loop.h"
 #include "image.h"
+#include "ssd1351.hpp"
 
 using namespace libcamera;
 using namespace std::chrono_literals;
@@ -164,6 +165,8 @@ int main()
         cm->stop();
         return EXIT_FAILURE;
     }
+
+    std::unique_ptr<Ssd1351> display = std::make_unique<Ssd1351>("/dev/spi0.0", 17, 6);
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::StillCapture});
     StreamConfiguration &streamConfig = config->at(0);
