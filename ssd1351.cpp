@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wiringPi.h>
+#include <iostream>
 #include "ssd1351.hpp"
 
 static spi_config_t spi_config;
@@ -14,7 +15,10 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     spi_config.delay = 0;
     spi_config.bits_per_word = 8;
     this->m_spi = std::make_unique<SPI>(spi_dev, &spi_config);
-    this->m_spi->begin();
+    if (!this->m_spi->begin())
+    {
+        std::cerr << "Unable to open SPI, display won't work" << std::endl;
+    }
     wiringPiSetupGpio();
 
     // I don't know if either of these is correct
