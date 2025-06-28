@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <span>
 #include <spidev_lib++.h>
 
 #define SSD1351WIDTH 128
@@ -47,7 +48,7 @@ class Ssd1351 {
     std::unique_ptr<SPI> m_spi;
     public:
         Ssd1351(const char *spi_dev, int cs, int dc, int rst = -1);
-        void drawImage(const uint8_t *imageData, int dataLength);
+        void drawImage(std::span<uint8_t>& data);
         void drawPixel(int16_t x, int16_t y, uint16_t color);
         ~Ssd1351();
     private:

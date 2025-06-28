@@ -49,14 +49,19 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     this->setChipSelect(false);
 }
 
-void Ssd1351::drawImage(const uint8_t *imageData, int dataLength)
-{}
+void Ssd1351::drawImage(std::span<uint8_t>& data)
+{
+    this->setChipSelect(true);
+    this->setAddrWindow(0, 0, SSD1351WIDTH-1, SSD1351HEIGHT-1);
+    this->m_spi->write(data.pointer, data.size());
+    this->setChipSelect(false);
+}
 
 void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour) {
     if ((x >= 0) && (x < SSD1351WIDTH) && (y >= 0) && (y < SSD1351HEIGHT)) {
         uint8_t buffer[2] = {(uint8_t)(colour>>8), (uint8_t) (colour & 0x00FF)};
         this->setChipSelect(true);
-        setAddrWindow(x, y, 1, 1);
+        this->setAddrWindow(x, y, 1, 1);
         this->m_spi->write(buffer, 2);
         this->setChipSelect(false);
     }

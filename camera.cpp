@@ -18,6 +18,7 @@ using namespace std::chrono_literals;
 #define TIMEOUT_SEC 3
 
 static std::shared_ptr<Camera> camera;
+static std::unique_ptr<Ssd1351> display;
 static EventLoop loop;
 
 static void processRequest(Request *request)
@@ -88,41 +89,7 @@ static void processRequest(Request *request)
         Span<uint8_t> data = image->data(0);
         const unsigned int length = std::min<unsigned int>(bytesused, data.size());
 
-        if (bytesused > data.size())
-            std::cerr << "payload size " << bytesused
-                      << " larger than plane size " << data.size()
-                      << std::endl;
-
-        std::stringstream ss;
-        ss << "output/frame" << std::setw(6) << std::setfill('0') << metadata.sequence << ".jpg";
-        std::string filename;
-        filename = ss.str();
-        int ret;
-        int fd = open(filename.c_str(), O_CREAT | O_WRONLY | O_TRUNC,
-                      S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-        if (fd == -1)
-        {
-            ret = -errno;
-            std::cerr << "failed to open file " << filename << ": "
-                      << strerror(-ret) << std::endl;
-            return;
-        }
-        ret = ::write(fd, data.data(), length);
-        if (ret < 0)
-        {
-            ret = -errno;
-            std::cerr << "write error: " << strerror(-ret)
-                      << std::endl;
-            break;
-        }
-        else if (ret != (int)length)
-        {
-            std::cerr << "write error: only " << ret
-                      << " bytes written instead of "
-                      << length << std::endl;
-            break;
-        }
-        close(fd);
+        display->drawImage(data&);
     }
 
     /* Re-queue the Request to the camera. */
@@ -166,7 +133,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    std::unique_ptr<Ssd1351> display = std::make_unique<Ssd1351>("/dev/spi0.0", 17, 6);
+    display = std::make_unique<Ssd1351>("/dev/spidev0.0", 17, 5, 13);
     display->drawPixel(64, 64, 0x714e);
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::StillCapture});
