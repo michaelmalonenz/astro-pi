@@ -5,9 +5,6 @@
 #include "ssd1351.hpp"
 
 static spi_config_t spi_config;
-static uint8_t tx_buffer[32];
-static uint8_t rx_buffer[32];
-
 
 Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     : m_cs(cs), m_dc(dc), m_rst(rst)
@@ -51,6 +48,16 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
 void Ssd1351::drawImage(const uint8_t *imageData, int dataLength)
 {}
 
+void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour) {
+    if ((x >= 0) && (x < SSD1351WIDTH) && (y >= 0) && (y < SSD1351HEIGHT)) {
+        uint8_t buffer[2] = {(uint8_t)(colour>>8), (uint8_t) (colour & 0x00FF)};
+        this->setChipSelect(true);
+        setAddrWindow(x, y, 1, 1);
+        this->m_spi->write(buffer, 2);
+        this->setChipSelect(false);
+    }
+}
+
 void Ssd1351::sendCommand(uint8_t byte)
 {
     digitalWrite(this->m_dc, LOW);
@@ -60,26 +67,22 @@ void Ssd1351::sendCommand(uint8_t byte)
 
 void Ssd1351::sendCommand(uint8_t byte, uint8_t arg1)
 {
-    uint8_t buffer[3] = {byte, arg1};
-    digitalWrite(this->m_dc, LOW);
-    this->m_spi->write(buffer, 2);
-    digitalWrite(this->m_dc, HIGH);
+    this->sendCommand(byte);
+    this->m_spi->write(&arg1, 1);
 }
 
 void Ssd1351::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t buffer[3] = {byte, arg1, arg2};
-    digitalWrite(this->m_dc, LOW);
-    this->m_spi->write(buffer, 3);
-    digitalWrite(this->m_dc, HIGH);
+    this->sendCommand(byte);
+    uint8_t buffer[2] = {arg1, arg2};
+    this->m_spi->write(buffer, 2);
 }
 
 void Ssd1351::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4)
 {
-    uint8_t buffer[5] = {byte, arg1, arg2, arg3, arg4};
-    digitalWrite(this->m_dc, LOW);
-    this->m_spi->write(buffer, 5);
-    digitalWrite(this->m_dc, HIGH);
+    this->sendCommand(byte);
+    uint8_t buffer[4] = {arg1, arg2, arg3, arg4};
+    this->m_spi->write(buffer, 4);
 }
 
 void Ssd1351::setChipSelect(bool asserted)
@@ -88,6 +91,28 @@ void Ssd1351::setChipSelect(bool asserted)
         digitalWrite(this->m_cs, LOW);
     else
         digitalWrite(this->m_cs, HIGH);
+}
+
+/*!
+    @brief   Set the "address window" - the rectangle we will write to
+             graphics RAM with the next chunk of SPI data writes. The
+             SSD1351 will automatically wrap the data as each row is filled.
+    @param   x1
+             Leftmost column of rectangle (screen pixel coordinates).
+    @param   y1
+             Topmost row of rectangle (screen pixel coordinates).
+    @param   w
+             Width of rectangle.
+    @param   h
+             Height of rectangle.
+    @return  None (void).
+*/
+void Ssd1351::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h) {
+
+    uint16_t x2 = x1 + w - 1, y2 = y1 + h - 1;
+    this->sendCommand(SSD1351_CMD_SETCOLUMN, x1, x2); // X range
+    this->sendCommand(SSD1351_CMD_SETROW, y1, y2); // Y range
+    this->sendCommand(SSD1351_CMD_WRITERAM); // Begin write
 }
 
 Ssd1351::~Ssd1351()

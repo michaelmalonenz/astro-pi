@@ -167,6 +167,7 @@ int main()
     }
 
     std::unique_ptr<Ssd1351> display = std::make_unique<Ssd1351>("/dev/spi0.0", 17, 6);
+    display->drawPixel(64, 64, 0x714e);
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::StillCapture});
     StreamConfiguration &streamConfig = config->at(0);
