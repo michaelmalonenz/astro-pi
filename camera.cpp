@@ -17,9 +17,15 @@ using namespace std::chrono_literals;
 
 #define TIMEOUT_SEC 3
 
+#define USE_SSD1351_DISPLAY (0)
+
 static std::shared_ptr<Camera> camera;
-static std::unique_ptr<Ssd1351> display;
 static EventLoop loop;
+
+#if USE_SSD1351_DISPLAY
+static std::unique_ptr<Ssd1351> display;
+#endif
+
 
 static void processRequest(Request *request)
 {
@@ -89,7 +95,9 @@ static void processRequest(Request *request)
         Span<uint8_t> data = image->data(0);
         const unsigned int length = std::min<unsigned int>(bytesused, data.size());
 
+#if USE_SSD1351_DISPLAY
         display->drawImage(data);
+#endif
     }
 
     /* Re-queue the Request to the camera. */
@@ -133,18 +141,25 @@ int main()
         return EXIT_FAILURE;
     }
 
+#if USE_SSD1351_DISPLAY
     display = std::make_unique<Ssd1351>("/dev/spidev0.0", 17, 5, 13);
-    display->drawPixel(64, 64, 0x714e);
+#endif
 
-    std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::StillCapture});
+    std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});
     StreamConfiguration &streamConfig = config->at(0);
     std::cout << "Default viewfinder configuration is: " << streamConfig.toString() << std::endl;
 
-    streamConfig.size.width = 128;
-    streamConfig.size.height = 128;
+    // streamConfig.size.width = 128;
+    // streamConfig.size.height = 128;
 
     config->validate();
     std::cout << "Validated viewfinder configuration is: " << streamConfig.toString() << std::endl;
+
+    for(auto stream : camera->streams())
+    {
+        auto config = stream->configuration();
+        std::cout << "Colour Space: " << config.colorSpace.value().toString() << " PixelFormat: " << config.pixelFormat.toString() << std::endl;
+    }
 
     if (camera->configure(config.get()) < 0)
     {
