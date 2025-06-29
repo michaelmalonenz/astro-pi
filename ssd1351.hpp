@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <memory>
-#include <span>
+#include <libcamera/libcamera.h>
 #include <spidev_lib++.h>
 
 #define SSD1351WIDTH 128
@@ -48,11 +48,11 @@ class Ssd1351 {
     std::unique_ptr<SPI> m_spi;
     public:
         Ssd1351(const char *spi_dev, int cs, int dc, int rst = -1);
-        void drawImage(std::span<uint8_t>& data);
+        void drawImage(libcamera::Span<uint8_t>& data);
         void drawPixel(int16_t x, int16_t y, uint16_t color);
         ~Ssd1351();
     private:
-        void sendCommand(uint8_t cmd);
+        void sendCommand(uint8_t cmd, uint8_t *buffer, int bufferLen);
         void sendCommand(uint8_t byte, uint8_t arg1);
         void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2);
         void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4);

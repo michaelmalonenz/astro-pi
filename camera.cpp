@@ -89,7 +89,7 @@ static void processRequest(Request *request)
         Span<uint8_t> data = image->data(0);
         const unsigned int length = std::min<unsigned int>(bytesused, data.size());
 
-        display->drawImage(data&);
+        display->drawImage(data);
     }
 
     /* Re-queue the Request to the camera. */
