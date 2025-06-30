@@ -7,17 +7,22 @@
 #include <cstdio>
 #include <fcntl.h>
 
+#define USE_SSD1351_DISPLAY (1)
+#define SHOW_IMAGE_METADATA (0)
+
 #include <libcamera/libcamera.h>
 #include "event_loop.h"
 #include "image.h"
+
+#if USE_SSD1351_DISPLAY
 #include "ssd1351.hpp"
+#endif
 
 using namespace libcamera;
 using namespace std::chrono_literals;
 
 #define TIMEOUT_SEC 3
 
-#define USE_SSD1351_DISPLAY (0)
 
 static std::shared_ptr<Camera> camera;
 static EventLoop loop;
@@ -29,8 +34,10 @@ static std::unique_ptr<Ssd1351> display;
 
 static void processRequest(Request *request)
 {
+#if SHOW_IMAGE_METADATA
     std::cout << std::endl
               << "Request completed: " << request->toString() << std::endl;
+#endif
 
     /*
      * When a request has completed, it is populated with a metadata control
@@ -43,6 +50,7 @@ static void processRequest(Request *request)
      * all the metadata for inspection. A custom application can parse each
      * of these items and process them according to its needs.
      */
+#if SHOW_IMAGE_METADATA
     const ControlList &requestMetadata = request->metadata();
     for (const auto &ctrl : requestMetadata)
     {
@@ -52,6 +60,7 @@ static void processRequest(Request *request)
         std::cout << "\t" << id->name() << " = " << value.toString()
                   << std::endl;
     }
+#endif
 
     /*
      * Each buffer has its own FrameMetadata to describe its state, or the
@@ -70,6 +79,7 @@ static void processRequest(Request *request)
         FrameBuffer *buffer = bufferPair.second;
         const FrameMetadata &metadata = buffer->metadata();
 
+#if SHOW_IMAGE_METADATA
         /* Print some information about the buffer which has completed. */
         std::cout << " seq: " << std::setw(6) << std::setfill('0') << metadata.sequence
                   << " timestamp: " << metadata.timestamp
@@ -84,6 +94,7 @@ static void processRequest(Request *request)
         }
 
         std::cout << std::endl;
+#endif
 
         /*
          * Image data can be accessed here, but the FrameBuffer
@@ -142,24 +153,27 @@ int main()
     }
 
 #if USE_SSD1351_DISPLAY
-    display = std::make_unique<Ssd1351>("/dev/spidev0.0", 17, 5, 13);
+    //                                                    cs, dc, rst
+    display = std::make_unique<Ssd1351>("/dev/spidev0.0",  8,  5, 9);
 #endif
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});
-    StreamConfiguration &streamConfig = config->at(0);
-    std::cout << "Default viewfinder configuration is: " << streamConfig.toString() << std::endl;
+    StreamConfiguration &viewFinderStreamConfig = config->at(0);
+    std::cout << "Default ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
+
+    // StreamConfiguration &stillCaptureStreamConfig = config->at(1);
+    // std::cout << "Default StillCapture configuration is: " << stillCaptureStreamConfig.toString() << std::endl;
 
     // streamConfig.size.width = 128;
     // streamConfig.size.height = 128;
 
     config->validate();
-    std::cout << "Validated viewfinder configuration is: " << streamConfig.toString() << std::endl;
-
-    for(auto stream : camera->streams())
-    {
-        auto config = stream->configuration();
-        std::cout << "Colour Space: " << config.colorSpace.value().toString() << " PixelFormat: " << config.pixelFormat.toString() << std::endl;
-    }
+    std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
+    // std::cout << "Validated StillCapture configuration is: " << stillCaptureStreamConfig.toString() << std::endl;
+    // if (stillCaptureStreamConfig.colorSpace.has_value())
+    // {
+    //     std::cout << "Still Capture Colour Space: " << stillCaptureStreamConfig.colorSpace.value().toString() << std::endl;
+    // }
 
     if (camera->configure(config.get()) < 0)
     {
@@ -199,7 +213,7 @@ int main()
      * that applications can access and for each of them a list of metadata
      * properties that reports the capture parameters applied to the image.
      */
-    Stream *stream = streamConfig.stream();
+    Stream *stream = viewFinderStreamConfig.stream();
     const std::vector<std::unique_ptr<FrameBuffer>> &buffers = allocator->buffers(stream);
     std::vector<std::unique_ptr<Request>> requests;
 
