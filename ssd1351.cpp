@@ -3,6 +3,8 @@
 #include <string.h>
 #include <wiringPi.h>
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include "ssd1351.hpp"
 
 static spi_config_t spi_config;
@@ -32,6 +34,7 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     // pullUpDnControl(this->m_dc, PUD_DOWN);
 
     // INIT DISPLAY ------------------------------------------------------------
+    this->reset();
     this->m_spi->setSpeed(SPI_SPEED);
     this->sendCommand(SSD1351_CMD_COMMANDLOCK, 1, 0x12); // Set command lock, 1 arg
     this->sendCommand(SSD1351_CMD_COMMANDLOCK, 1, 0xB1); // Set command lock, 1 arg
@@ -124,6 +127,17 @@ void Ssd1351::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h) {
     this->sendCommand(SSD1351_CMD_SETCOLUMN, x1, x2); // X range
     this->sendCommand(SSD1351_CMD_SETROW, y1, y2); // Y range
     this->sendCommand(SSD1351_CMD_WRITERAM, nullptr, 0); // Begin write
+}
+
+void Ssd1351::reset()
+{
+    if (this->m_rst != -1)
+    {
+        digitalWrite(this->m_rst, LOW);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        digitalWrite(this->m_rst, HIGH);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
 }
 
 Ssd1351::~Ssd1351()

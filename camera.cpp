@@ -153,8 +153,8 @@ int main()
     }
 
 #if USE_SSD1351_DISPLAY
-    //                                                    cs, dc, rst
-    display = std::make_unique<Ssd1351>("/dev/spidev0.0",  8,  5, 9);
+    display = std::make_unique<Ssd1351>("/dev/spidev0.0",  8,  5, 6);
+    display->drawPixel(64, 64, 0xf816);
 #endif
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});
@@ -164,8 +164,8 @@ int main()
     // StreamConfiguration &stillCaptureStreamConfig = config->at(1);
     // std::cout << "Default StillCapture configuration is: " << stillCaptureStreamConfig.toString() << std::endl;
 
-    // streamConfig.size.width = 128;
-    // streamConfig.size.height = 128;
+    viewFinderStreamConfig.size.width = 128;
+    viewFinderStreamConfig.size.height = 128;
 
     config->validate();
     std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
