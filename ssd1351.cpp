@@ -26,12 +26,8 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     wiringPiSetup();
     wiringPiSetupGpio();
 
-    // I don't know if either of these is correct
     pinMode(this->m_cs, OUTPUT);
-    // pullUpDnControl(this->m_cs, PUD_DOWN);
-
     pinMode(this->m_dc, OUTPUT);
-    // pullUpDnControl(this->m_dc, PUD_DOWN);
 
     // INIT DISPLAY ------------------------------------------------------------
     this->reset();
@@ -62,7 +58,8 @@ void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
     this->setChipSelect(false);
 }
 
-void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour) {
+void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour)
+{
     if ((x >= 0) && (x < SSD1351WIDTH) && (y >= 0) && (y < SSD1351HEIGHT)) {
         uint8_t buffer[2] = {(uint8_t)(colour>>8), (uint8_t) (colour & 0x00FF)};
         this->setChipSelect(true);
@@ -121,7 +118,8 @@ void Ssd1351::setChipSelect(bool asserted)
              Height of rectangle.
     @return  None (void).
 */
-void Ssd1351::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h) {
+void Ssd1351::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
+{
 
     uint16_t x2 = x1 + w - 1, y2 = y1 + h - 1;
     this->sendCommand(SSD1351_CMD_SETCOLUMN, x1, x2); // X range
