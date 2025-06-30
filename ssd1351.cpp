@@ -31,7 +31,6 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
 
     // INIT DISPLAY ------------------------------------------------------------
     this->reset();
-    this->m_spi->setSpeed(SPI_SPEED);
     this->sendCommand(SSD1351_CMD_COMMANDLOCK, 1, 0x12); // Set command lock, 1 arg
     this->sendCommand(SSD1351_CMD_COMMANDLOCK, 1, 0xB1); // Set command lock, 1 arg
     this->sendCommand(SSD1351_CMD_DISPLAYOFF, 0); // Display off, no args
@@ -67,6 +66,21 @@ void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour)
         this->m_spi->write(buffer, 2);
         this->setChipSelect(false);
     }
+}
+
+void Ssd1351::fillWithColour(uint16_t colour)
+{
+    uint32_t numPixels = SSD1351WIDTH * SSD1351HEIGHT;
+    uint8_t buffer[numPixels * 2];
+    for (uint32_t i = 0; i < numPixels*2; i+=2)
+    {
+        buffer[i] = (uint8_t)(colour>>8);
+        buffer[i] = (uint8_t)(colour & 0xFF);
+    }
+    this->setChipSelect(true);
+    this->setAddrWindow(0, 0, SSD1351WIDTH-1, SSD1351HEIGHT-1);
+    this->m_spi->write(buffer, numPixels*2);
+    this->setChipSelect(false);
 }
 
 void Ssd1351::sendCommand(uint8_t byte, uint8_t *argBuffer, int bufferLen)

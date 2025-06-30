@@ -50,6 +50,7 @@ class Ssd1351 {
         Ssd1351(const char *spi_dev, int cs, int dc, int rst = -1);
         void drawImage(libcamera::Span<uint8_t>& data);
         void drawPixel(int16_t x, int16_t y, uint16_t color);
+        void fillWithColour(uint16_t colour);
         ~Ssd1351();
     private:
         void sendCommand(uint8_t cmd, uint8_t *buffer, int bufferLen);
