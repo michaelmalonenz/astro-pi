@@ -34,16 +34,20 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     this->sendCommand(SSD1351_CMD_COMMANDLOCK, 1, 0x12); // Set command lock, 1 arg
     this->sendCommand(SSD1351_CMD_COMMANDLOCK, 1, 0xB1); // Set command lock, 1 arg
     this->sendCommand(SSD1351_CMD_DISPLAYOFF, 0); // Display off, no args
-    this->sendCommand(SSD1351_CMD_CLOCKDIV, 1, 0xF1); // 7:4 = Oscillator Freq, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
+    this->sendCommand(SSD1351_CMD_DISPLAYENHANCE, 3, 0xA4, 0x00, 0x00);
+    this->sendCommand(SSD1351_CMD_CLOCKDIV, 1, 0xF0); // 7:4 = Oscillator Freq, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
     this->sendCommand(SSD1351_CMD_MUXRATIO, 1, 127);
+    this->sendCommand(SSD1351_CMD_SETREMAP, 1, 0x74);
+    this->sendCommand(SSD1351_CMD_STARTLINE, 0);
     this->sendCommand(SSD1351_CMD_DISPLAYOFFSET, 1, 0x0);
     this->sendCommand(SSD1351_CMD_SETGPIO, 1, 0x00);
     this->sendCommand(SSD1351_CMD_FUNCTIONSELECT, 1, 0x01); // internal (diode drop)
     this->sendCommand(SSD1351_CMD_PRECHARGE, 1, 0x32);
+    this->sendCommand(SSD1351_CMD_PRECHARGELEVEL, 1, 0x1F);
     this->sendCommand(SSD1351_CMD_VCOMH, 1, 0x05);
     this->sendCommand(SSD1351_CMD_NORMALDISPLAY, 0);
+    this->sendCommand(SSD1351_CMD_CONTRASTMASTER, 1, 0x0A);
     this->sendCommand(SSD1351_CMD_CONTRASTABC, 3, 0xC8, 0x80, 0xC8);
-    this->sendCommand(SSD1351_CMD_CONTRASTMASTER, 1, 0x0F);
     this->sendCommand(SSD1351_CMD_SETVSL, 3, 0xA0, 0xB5, 0x55);
     this->sendCommand(SSD1351_CMD_PRECHARGE2, 1, 0x01);
     this->sendCommand(SSD1351_CMD_DISPLAYON, 0);  // Main screen turn on
