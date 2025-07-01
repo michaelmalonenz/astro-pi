@@ -56,7 +56,9 @@ class Ssd1351 {
         void sendCommand(uint8_t cmd, uint8_t *buffer, int bufferLen);
         void sendCommand(uint8_t byte, uint8_t arg1);
         void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2);
-        void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4);
+        void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3);
+	void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4);
+	void sendData(uint8_t *buffer, int bufferLen);
         void setChipSelect(bool asserted);
         void setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h);
         void reset();
