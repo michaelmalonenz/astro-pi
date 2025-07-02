@@ -52,12 +52,14 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     this->fillWithColour(0x0); // black / clear the screen
 }
 
-/*void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
+void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
 {
+    char buffer[data.size()];
+    memccpy(buffer, data.data(), sizeof(char), data.size());
     this->setAddrWindow(0, 0, SSD1351WIDTH, SSD1351HEIGHT);
-    this->sendData(data.data(), data.size());
+    this->sendData(buffer, data.size());
     std::cout << "Writing image data: " << data.size() << std::endl;
-}*/
+}
 
 void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour)
 {

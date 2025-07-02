@@ -107,7 +107,7 @@ static void processRequest(Request *request)
         const unsigned int length = std::min<unsigned int>(bytesused, data.size());
 
 #if USE_SSD1351_DISPLAY
-        //display->drawImage(data);
+        display->drawImage(data);
 #endif
     }
 
