@@ -3,7 +3,8 @@
 #include <cstdint>
 #include <memory>
 #include <libcamera/libcamera.h>
-#include <spidev_lib++.h>
+//#include <spidev_lib++.h>
+#include <spidevpp/spi.h>
 
 #define SSD1351WIDTH 128
 #define SSD1351HEIGHT 128
@@ -45,7 +46,7 @@ class Ssd1351 {
     int m_cs;
     int m_dc;
     int m_rst;
-    std::unique_ptr<SPI> m_spi;
+    std::unique_ptr<spidevpp::Spi> m_spi;
     public:
         Ssd1351(const char *spi_dev, int cs, int dc, int rst = -1);
         void drawImage(libcamera::Span<uint8_t>& data);
@@ -53,13 +54,13 @@ class Ssd1351 {
         void fillWithColour(uint16_t colour);
         ~Ssd1351();
     private:
-        void sendCommand(uint8_t cmd, uint8_t *buffer, int bufferLen);
-        void sendCommand(uint8_t byte);
-        void sendCommand(uint8_t byte, uint8_t arg1);
-        void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2);
-        void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3);
-        void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4);
-        void sendData(uint8_t *buffer, int bufferLen);
+        void sendCommand(char cmd, char *buffer, int bufferLen);
+        void sendCommand(char byte);
+        void sendCommand(char byte, char arg1);
+        void sendCommand(char byte, char arg1, char arg2);
+        void sendCommand(char byte, char arg1, char arg2, char arg3);
+        void sendCommand(char byte, char arg1, char arg2, char arg3, char arg4);
+        void sendData(char *buffer, int bufferLen);
         void setChipSelect(bool asserted);
         void setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h);
         void reset();

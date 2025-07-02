@@ -29,8 +29,8 @@ add_executable(astro-pi
     ssd1351.cpp
 )
 
-add_subdirectory(spidev-lib)
+add_subdirectory(spidevpp)
 
-target_link_libraries(astro-pi PRIVATE PkgConfig::LIBEVENT PkgConfig::LIBCAMERA spidev-lib++ wiringPi)
+target_link_libraries(astro-pi PRIVATE PkgConfig::LIBEVENT PkgConfig::LIBCAMERA spidevpp wiringPi)
 include_directories(${CMAKE_SOURCE_DIR} ${LIBCAMERA_INCLUDE_DIRS} ${LIBEVENT_INCLUDE_DIRS})
 target_include_directories(astro-pi PRIVATE "/usr/include/libcamera")
