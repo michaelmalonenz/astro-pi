@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <memory>
 #include <libcamera/libcamera.h>
-//#include <spidev_lib++.h>
 #include <spidevpp/spi.h>
 
 #define SSD1351WIDTH 128

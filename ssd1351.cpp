@@ -7,8 +7,6 @@
 #include <chrono>
 #include "ssd1351.hpp"
 
-//static spi_config_t spi_config;
-
 #define SPI_SPEED 8000000
 
 Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
@@ -17,10 +15,6 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     this->m_spi = std::make_unique<spidevpp::Spi>(spi_dev);
     this->m_spi->setBitsPerWord(8);
     this->m_spi->setSpeed(SPI_SPEED);
-    /*if (!this->m_spi->begin())
-    {
-        std::cerr << "Unable to open SPI, display won't work" << std::endl;
-    }*/
     wiringPiSetup();
     wiringPiSetupGpio();
 
@@ -54,11 +48,14 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
 
 void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
 {
-    char buffer[data.size()];
-    memccpy(buffer, data.data(), sizeof(char), data.size());
-    this->setAddrWindow(0, 0, SSD1351WIDTH, SSD1351HEIGHT);
-    this->sendData(buffer, data.size());
-    std::cout << "Writing image data: " << data.size() << std::endl;
+    char buffer[2048];
+    uint8_t *data_buffer = data.data();
+    for (uint8_t x = 0; x < SSD1351WIDTH; x += 8)
+    {
+        memccpy(buffer, &data_buffer[x*2048], sizeof(char), 2048);
+        this->setAddrWindow(x, 0, 8, SSD1351HEIGHT);
+        this->sendData(buffer, 2048);
+    }
 }
 
 void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour)
