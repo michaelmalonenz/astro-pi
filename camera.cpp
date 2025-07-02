@@ -153,8 +153,8 @@ int main()
     }
 
 #if USE_SSD1351_DISPLAY
-    display = std::make_unique<Ssd1351>("/dev/spidev0.0",  8,  5, 6);
-    display->fillWithColour(0xf816);
+    //                                                   cs, dc, rst
+    display = std::make_unique<Ssd1351>("/dev/spidev0.0", 8,  5,  6);
 #endif
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});

@@ -26,7 +26,7 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     wiringPiSetup();
     wiringPiSetupGpio();
 
-//    pinMode(this->m_cs, OUTPUT);
+    pinMode(this->m_cs, OUTPUT);
     pinMode(this->m_dc, OUTPUT);
 
     // INIT DISPLAY ------------------------------------------------------------
@@ -51,6 +51,7 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     this->sendCommand(SSD1351_CMD_SETVSL, 0xA0, 0xB5, 0x55);
     this->sendCommand(SSD1351_CMD_PRECHARGE2, 0x01);
     this->sendCommand(SSD1351_CMD_DISPLAYON);  // Main screen turn on
+    this->fillWithColour(0x0); // black / clear the screen
 }
 
 void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
@@ -75,7 +76,7 @@ void Ssd1351::fillWithColour(uint16_t colour)
     uint8_t buffer[2048];
     for (uint32_t i = 0; i < 2048; i+=2)
     {
-        buffer[i] = (uint8_t)(colour>>8);
+        buffer[i] = (uint8_t)((colour>>8)&0xFF);
         buffer[i+1] = (uint8_t)(colour & 0xFF);
     }
 
@@ -91,11 +92,11 @@ void Ssd1351::sendCommand(uint8_t byte, uint8_t *argBuffer, int bufferLen)
     digitalWrite(this->m_dc, LOW);
     this->setChipSelect(true);
     this->m_spi->write(&byte, 1);
+    this->setChipSelect(false);
     if (bufferLen > 0)
     {
         this->sendData(argBuffer, bufferLen);
     }
-    this->setChipSelect(false);
 }
 
 void Ssd1351::sendCommand(uint8_t byte)
@@ -113,12 +114,12 @@ void Ssd1351::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2)
     uint8_t buffer[2] = {arg1, arg2};
     this->sendCommand(byte, buffer, 2);
 }
+
 void Ssd1351::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3)
 {
     uint8_t buffer[3] = {arg1, arg2, arg3};
     this->sendCommand(byte, buffer, 3);
 }
-
 
 void Ssd1351::setChipSelect(bool asserted)
 {
@@ -145,17 +146,17 @@ void Ssd1351::setChipSelect(bool asserted)
 void Ssd1351::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
 {
     uint16_t x2 = x1 + w - 1, y2 = y1 + h - 1;
-    this->sendCommand(SSD1351_CMD_SETCOLUMN, 2, x1, x2); // X range
-    this->sendCommand(SSD1351_CMD_SETROW, 2, y1, y2); // Y range
-    this->sendCommand(SSD1351_CMD_WRITERAM, nullptr, 0); // Begin write
+    this->sendCommand(SSD1351_CMD_SETCOLUMN, x1, x2); // X range
+    this->sendCommand(SSD1351_CMD_SETROW, y1, y2); // Y range
+    this->sendCommand(SSD1351_CMD_WRITERAM); // Begin write
 }
 
 void Ssd1351::sendData(uint8_t *buffer, int bufferLen)
 {
-    digitalWrite(this->m_cs, LOW);
     digitalWrite(this->m_dc, HIGH);
+    this->setChipSelect(true);
     this->m_spi->write(buffer, bufferLen);
-    digitalWrite(this->m_cs, HIGH);
+    this->setChipSelect(false);
 }
 
 void Ssd1351::reset()
