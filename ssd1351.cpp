@@ -72,14 +72,18 @@ void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour)
 void Ssd1351::fillWithColour(uint16_t colour)
 {
     uint32_t numPixels = SSD1351WIDTH * SSD1351HEIGHT;
-    uint8_t buffer[numPixels * 2];
-    for (uint32_t i = 0; i < numPixels*2; i+=2)
+    uint8_t buffer[2048];
+    for (uint32_t i = 0; i < 2048; i+=2)
     {
         buffer[i] = (uint8_t)(colour>>8);
         buffer[i+1] = (uint8_t)(colour & 0xFF);
     }
-    this->setAddrWindow(0, 0, SSD1351WIDTH, SSD1351HEIGHT);
-    this->sendData(buffer, numPixels*2);
+
+    for (uint8_t x = 0; x < SSD1351WIDTH; x += 8)
+    {
+        this->setAddrWindow(x, 0, 8, SSD1351HEIGHT);
+        this->sendData(buffer, 2048);
+    }
 }
 
 void Ssd1351::sendCommand(uint8_t byte, uint8_t *argBuffer, int bufferLen)
