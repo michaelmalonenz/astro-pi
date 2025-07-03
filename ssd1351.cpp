@@ -10,7 +10,7 @@
 #define SPI_SPEED 8000000
 
 Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
-    : m_cs(cs), m_dc(dc), m_rst(rst)
+    : Display(spi_dev, SPI_SPEED, cs, dc, rst)
 {
     this->m_spi = std::make_unique<spidevpp::Spi>(spi_dev);
     this->m_spi->setBitsPerWord(8);
@@ -48,7 +48,7 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
 
 void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
 {
-    char buffer[2048];
+    uint8_t buffer[2048];
     uint8_t *data_buffer = data.data();
     for (uint8_t x = 0; x < SSD1351WIDTH; x += 8)
     {
@@ -61,7 +61,7 @@ void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
 void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour)
 {
     if ((x >= 0) && (x < SSD1351WIDTH) && (y >= 0) && (y < SSD1351HEIGHT)) {
-        char buffer[2] = {(char)(colour>>8), (char) (colour & 0x00FF)};
+        uint8_t buffer[2] = {(uint8_t)(colour>>8), (uint8_t) (colour & 0x00FF)};
         this->setAddrWindow(x, y, 1, 1);
         this->sendData(buffer, 2);
     }
@@ -70,7 +70,7 @@ void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour)
 void Ssd1351::fillWithColour(uint16_t colour)
 {
     uint32_t numPixels = SSD1351WIDTH * SSD1351HEIGHT;
-    char buffer[2048];
+    uint8_t buffer[2048];
     for (uint32_t i = 0; i < 2048; i+=2)
     {
         buffer[i] = (uint8_t)((colour>>8)&0xFF);
@@ -84,46 +84,9 @@ void Ssd1351::fillWithColour(uint16_t colour)
     }
 }
 
-void Ssd1351::sendCommand(char byte, char *argBuffer, int bufferLen)
+void Ssd1351::displayOff()
 {
-    digitalWrite(this->m_dc, LOW);
-    this->setChipSelect(true);
-    this->m_spi->write(&byte, 1);
-    this->setChipSelect(false);
-    if (bufferLen > 0)
-    {
-        this->sendData(argBuffer, bufferLen);
-    }
-}
-
-void Ssd1351::sendCommand(char byte)
-{
-    this->sendCommand(byte, nullptr, 0);
-}
-
-void Ssd1351::sendCommand(char byte, char arg1)
-{
-    this->sendCommand(byte, &arg1, 1);
-}
-
-void Ssd1351::sendCommand(char byte, char arg1, char arg2)
-{
-    char buffer[2] = {arg1, arg2};
-    this->sendCommand(byte, buffer, 2);
-}
-
-void Ssd1351::sendCommand(char byte, char arg1, char arg2, char arg3)
-{
-    char buffer[3] = {arg1, arg2, arg3};
-    this->sendCommand(byte, buffer, 3);
-}
-
-void Ssd1351::setChipSelect(bool asserted)
-{
-    if (asserted)
-        digitalWrite(this->m_cs, LOW);
-    else
-        digitalWrite(this->m_cs, HIGH);
+    this->sendCommand(SSD1351_CMD_DISPLAYOFF); // Display off, no args
 }
 
 /*!
@@ -146,29 +109,5 @@ void Ssd1351::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
     this->sendCommand(SSD1351_CMD_SETCOLUMN, x1, x2); // X range
     this->sendCommand(SSD1351_CMD_SETROW, y1, y2); // Y range
     this->sendCommand(SSD1351_CMD_WRITERAM); // Begin write
-}
-
-void Ssd1351::sendData(char *buffer, int bufferLen)
-{
-    digitalWrite(this->m_dc, HIGH);
-    this->setChipSelect(true);
-    this->m_spi->write(buffer, bufferLen);
-    this->setChipSelect(false);
-}
-
-void Ssd1351::reset()
-{
-    if (this->m_rst != -1)
-    {
-        digitalWrite(this->m_rst, LOW);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        digitalWrite(this->m_rst, HIGH);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-}
-
-Ssd1351::~Ssd1351()
-{
-    this->m_spi.reset();
 }
 

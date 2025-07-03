@@ -1,3 +1,3 @@
 [submodule "spidevpp"]
 	path = spidevpp
-	url = https://github.com/twyleg/spidevpp
+	url = ssh://git@github.com/michaelmalonenz/spidevpp.git

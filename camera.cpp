@@ -262,6 +262,7 @@ int main()
     camera->release();
     camera.reset();
     cm->stop();
+    display->displayOff();
 
     return EXIT_SUCCESS;
 }

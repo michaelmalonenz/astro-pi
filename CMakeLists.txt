@@ -27,6 +27,8 @@ add_executable(astro-pi
     event_loop.cpp
     image.cpp
     ssd1351.cpp
+    tp28017.cpp
+    display.cpp
 )
 
 add_subdirectory(spidevpp)

@@ -1,9 +1,6 @@
 #pragma once
 
-#include <cstdint>
-#include <memory>
-#include <libcamera/libcamera.h>
-#include <spidevpp/spi.h>
+#include "display.hpp"
 
 #define SSD1351WIDTH 128
 #define SSD1351HEIGHT 128
@@ -41,26 +38,13 @@
 #define SSD1351_CMD_STARTSCROLL 0x9F    ///< Not currently used
 
 
-class Ssd1351 {
-    int m_cs;
-    int m_dc;
-    int m_rst;
-    std::unique_ptr<spidevpp::Spi> m_spi;
+class Ssd1351 : public Display {
     public:
         Ssd1351(const char *spi_dev, int cs, int dc, int rst = -1);
-        void drawImage(libcamera::Span<uint8_t>& data);
-        void drawPixel(int16_t x, int16_t y, uint16_t color);
-        void fillWithColour(uint16_t colour);
-        ~Ssd1351();
-    private:
-        void sendCommand(char cmd, char *buffer, int bufferLen);
-        void sendCommand(char byte);
-        void sendCommand(char byte, char arg1);
-        void sendCommand(char byte, char arg1, char arg2);
-        void sendCommand(char byte, char arg1, char arg2, char arg3);
-        void sendCommand(char byte, char arg1, char arg2, char arg3, char arg4);
-        void sendData(char *buffer, int bufferLen);
-        void setChipSelect(bool asserted);
-        void setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h);
-        void reset();
+        void drawImage(libcamera::Span<uint8_t>& data) override;
+        void drawPixel(int16_t x, int16_t y, uint16_t color) override;
+        void fillWithColour(uint16_t colour) override;
+        void displayOff() override;
+    protected:
+        void setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h) override;
 };
