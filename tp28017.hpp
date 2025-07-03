@@ -3,7 +3,6 @@
 #include "display.hpp"
 
 
-
 #define TP28017_TFTWIDTH 240  ///< TP28017 max TFT width
 #define TP28017_TFTHEIGHT 320 ///< TP28017 max TFT height
 
@@ -75,4 +74,6 @@ class Tp28017 : public Display {
         void displayOff() override;
     protected:
         void setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h) override;
+    private:
+        void spiWrite16(uint16_t data);
 };

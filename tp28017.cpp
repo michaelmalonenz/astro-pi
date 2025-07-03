@@ -1,6 +1,6 @@
 #include "tp28017.hpp"
 
-#define SPI_SPEED 8000000
+#define SPI_SPEED 80000000
 
 
 Tp28017::Tp28017(const char *spi_dev, int cs, int dc, int rst)
@@ -44,10 +44,51 @@ void Tp28017::drawPixel(int16_t x, int16_t y, uint16_t color)
 {}
 
 void Tp28017::fillWithColour(uint16_t colour)
-{}
+{
+uint32_t numPixels = TP28017_TFTWIDTH * TP28017_TFTHEIGHT;
+    uint8_t buffer[2048];
+    for (uint32_t i = 0; i < 2048; i+=2)
+    {
+        buffer[i] = (uint8_t)((colour>>8)&0xFF);
+        buffer[i+1] = (uint8_t)(colour & 0xFF);
+    }
+
+    for (uint8_t x = 0; x < TP28017_TFTWIDTH; x += 8)
+    {
+        this->setAddrWindow(x, 0, 8, TP28017_TFTHEIGHT);
+        this->sendData(buffer, 2048);
+    }
+}
 
 void Tp28017::displayOff()
 {}
 
+void Tp28017::spiWrite16(uint16_t data)
+{
+    uint8_t buffer[2] = { data >> 8, data && 0xFF };
+    this->sendData(buffer, 2);
+}
+
 void Tp28017::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
-{}
+{
+    static uint16_t old_x1 = 0xffff, old_x2 = 0xffff;
+    static uint16_t old_y1 = 0xffff, old_y2 = 0xffff;
+
+    uint8_t buffer[2];
+    uint16_t x2 = (x1 + w - 1), y2 = (y1 + h - 1);
+    if (x1 != old_x1 || x2 != old_x2) {
+        this->sendCommand(TP28017_CASET); // Column address set
+        this->spiWrite16(x1);
+        this->spiWrite16(x2);
+        old_x1 = x1;
+        old_x2 = x2;
+    }
+    if (y1 != old_y1 || y2 != old_y2) {
+        this->sendCommand(TP28017_PASET); // Row address set
+        this->spiWrite16(y1);
+        this->spiWrite16(y2);
+        old_y1 = y1;
+        old_y2 = y2;
+    }
+    this->sendCommand(TP28017_RAMWR); // Write to RAM
+}

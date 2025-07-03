@@ -7,7 +7,8 @@
 #include <cstdio>
 #include <fcntl.h>
 
-#define USE_SSD1351_DISPLAY (1)
+#define USE_SSD1351_DISPLAY (0)
+#define USE_TP28017_DISPLAY (1)
 #define SHOW_IMAGE_METADATA (0)
 
 #include <libcamera/libcamera.h>
@@ -16,6 +17,8 @@
 
 #if USE_SSD1351_DISPLAY
 #include "ssd1351.hpp"
+#elif USE_TP28017_DISPLAY
+#include "tp28017.hpp"
 #endif
 
 using namespace libcamera;
@@ -27,8 +30,8 @@ using namespace std::chrono_literals;
 static std::shared_ptr<Camera> camera;
 static EventLoop loop;
 
-#if USE_SSD1351_DISPLAY
-static std::unique_ptr<Ssd1351> display;
+#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
+static std::unique_ptr<Display> display;
 #endif
 
 
@@ -106,7 +109,7 @@ static void processRequest(Request *request)
         Span<uint8_t> data = image->data(0);
         const unsigned int length = std::min<unsigned int>(bytesused, data.size());
 
-#if USE_SSD1351_DISPLAY
+#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
         display->drawImage(data);
 #endif
     }
@@ -155,6 +158,9 @@ int main()
 #if USE_SSD1351_DISPLAY
     //                                                   cs, dc, rst
     display = std::make_unique<Ssd1351>("/dev/spidev0.0", 8,  5,  6);
+#elif USE_TP28017_DISPLAY
+    //                                                   cs, dc, rst
+    display = std::make_unique<Tp28017>("/dev/spidev0.0", 8,  5,  6);
 #endif
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});
