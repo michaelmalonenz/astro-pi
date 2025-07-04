@@ -36,6 +36,7 @@ public:
 
     libcamera::Span<uint8_t> data(unsigned int plane);
     libcamera::Span<const uint8_t> data(unsigned int plane) const;
+    std::vector<uint8_t> dataAsRGB565();
 
 private:
     LIBCAMERA_DISABLE_COPY(Image)
