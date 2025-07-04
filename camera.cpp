@@ -7,8 +7,8 @@
 #include <cstdio>
 #include <fcntl.h>
 
-#define USE_SSD1351_DISPLAY (0)
-#define USE_TP28017_DISPLAY (1)
+#define USE_SSD1351_DISPLAY (1)
+#define USE_TP28017_DISPLAY (0)
 #define SHOW_IMAGE_METADATA (0)
 
 #include <libcamera/libcamera.h>

@@ -124,8 +124,8 @@ std::vector<uint8_t> Image::dataAsRGB565()
         uint8_t green = plane[i+2];
         uint8_t blue = plane[i+3];
         uint16_t rgb = ((red & 0b11111000) << 8) | ((green & 0b11111100) << 3) | (blue >> 3);
-        result.emplace_back((uint8_t)rgb >> 8);
-        result.emplace_back((uint8_t)rgb & 0xFF);
+        result.push_back((uint8_t)rgb >> 8);
+        result.push_back((uint8_t)rgb & 0xFF);
     }
     return result;
 }

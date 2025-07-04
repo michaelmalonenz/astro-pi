@@ -48,13 +48,11 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
 
 void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
 {
-    uint8_t buffer[2048];
-    uint8_t *data_buffer = data.data();
+    uint8_t *buffer = data.data();
     for (uint8_t x = 0; x < SSD1351WIDTH; x += 8)
     {
-        memccpy(buffer, &data_buffer[x*2048], sizeof(char), 2048);
         this->setAddrWindow(x, 0, 8, SSD1351HEIGHT);
-        this->sendData(buffer, 2048);
+        this->sendData(&buffer[x*256], 2048);
     }
 }
 
