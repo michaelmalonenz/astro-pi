@@ -66,7 +66,7 @@ void Tp28017::displayOff()
 
 void Tp28017::spiWrite16(uint16_t data)
 {
-    uint8_t buffer[2] = { (uint8_t) (data >> 8), (uint8_t) (data && 0xFF) };
+    uint8_t buffer[2] = { (uint8_t) (data >> 8), (uint8_t) (data & 0xFF) };
     this->sendData(buffer, 2);
 }
 

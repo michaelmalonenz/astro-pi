@@ -163,7 +163,9 @@ int main()
     //                                                   cs, dc, rst
     display = std::make_unique<Tp28017>("/dev/spidev0.0", 8,  5,  6);
 #endif
+#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
     display->fillWithColour(0xf81e);
+#endif
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});
     StreamConfiguration &viewFinderStreamConfig = config->at(0);
@@ -270,7 +272,9 @@ int main()
     camera->release();
     camera.reset();
     cm->stop();
+#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
     display->displayOff();
+#endif
 
     return EXIT_SUCCESS;
 }
