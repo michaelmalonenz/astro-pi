@@ -162,6 +162,7 @@ int main()
     //                                                   cs, dc, rst
     display = std::make_unique<Tp28017>("/dev/spidev0.0", 8,  5,  6);
 #endif
+    display->fillWithColour(0xf81e);
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});
     StreamConfiguration &viewFinderStreamConfig = config->at(0);

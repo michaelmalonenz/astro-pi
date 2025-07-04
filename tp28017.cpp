@@ -7,6 +7,7 @@ Tp28017::Tp28017(const char *spi_dev, int cs, int dc, int rst)
     : Display(spi_dev, SPI_SPEED, cs, dc, rst)
 {
     // INIT DISPLAY ------------------------------------------------------------
+    this->reset();
     this->sendCommand(0xEF, 0x03, 0x80, 0x02);
     this->sendCommand(0xCF, 0x00, 0xC1, 0x30);
     this->sendCommand(0xED, 0x64, 0x03, 0x12, 0x81);
@@ -21,7 +22,7 @@ Tp28017::Tp28017(const char *spi_dev, int cs, int dc, int rst)
     this->sendCommand(TP28017_MADCTL, 0x48);             // Memory Access Control
     this->sendCommand(TP28017_VSCRSADD, 0x00);             // Vertical scroll zero
     this->sendCommand(TP28017_PIXFMT, 0x55);
-    this->sendCommand(TP28017_FRMCTR1, 0x00, 0x18);
+    this->sendCommand(TP28017_FRMCTR1, (uint8_t) 0x00, 0x18); // if we don't cast, then the compiler can't tell whether this is a nullptr or a uint8_t
     this->sendCommand(TP28017_DFUNCTR, 0x08, 0x82, 0x27); // Display Function Control
     this->sendCommand(0xF2, 0x00);                         // 3Gamma Function Disable
     this->sendCommand(TP28017_GAMMASET, 0x01);             // Gamma curve selected
@@ -45,7 +46,7 @@ void Tp28017::drawPixel(int16_t x, int16_t y, uint16_t color)
 
 void Tp28017::fillWithColour(uint16_t colour)
 {
-uint32_t numPixels = TP28017_TFTWIDTH * TP28017_TFTHEIGHT;
+    uint32_t numPixels = TP28017_TFTWIDTH * TP28017_TFTHEIGHT;
     uint8_t buffer[2048];
     for (uint32_t i = 0; i < 2048; i+=2)
     {
