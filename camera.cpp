@@ -6,9 +6,11 @@
 #include <cstring>
 #include <cstdio>
 #include <fcntl.h>
+#include <Magick++.h>
 
-#define USE_SSD1351_DISPLAY (1)
+#define USE_SSD1351_DISPLAY (0)
 #define USE_TP28017_DISPLAY (0)
+#define WRITE_IMAGES_TO_FILE (!(USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY))
 #define SHOW_IMAGE_METADATA (0)
 
 #include <libcamera/libcamera.h>
@@ -29,6 +31,8 @@ using namespace std::chrono_literals;
 
 static std::shared_ptr<Camera> camera;
 static EventLoop loop;
+static int _width;
+static int _height;
 
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
 static std::unique_ptr<Display> display;
@@ -112,6 +116,14 @@ static void processRequest(Request *request)
 
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
         display->drawImage(data);
+#elif WRITE_IMAGES_TO_FILE
+        auto imageData = image->data(0);
+        Magick::Blob blob(imageData.data(), imageData.size());
+        Magick::Geometry size(128, 128);
+        Magick::Image my_image(blob, size);
+        std::stringstream ss;
+        ss << "output/frame" << std::setw(6) << std::setfill('0') << metadata.sequence << ".jpg";
+        my_image.write(ss.str());
 #endif
     }
 
@@ -184,6 +196,9 @@ int main()
     // {
     //     std::cout << "Still Capture Colour Space: " << stillCaptureStreamConfig.colorSpace.value().toString() << std::endl;
     // }
+
+    _width = viewFinderStreamConfig.size.width;
+    _height = viewFinderStreamConfig.size.height;
 
     if (camera->configure(config.get()) < 0)
     {

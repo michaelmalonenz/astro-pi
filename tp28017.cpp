@@ -22,7 +22,7 @@ Tp28017::Tp28017(const char *spi_dev, int cs, int dc, int rst)
     this->sendCommand(TP28017_MADCTL, 0x48);             // Memory Access Control
     this->sendCommand(TP28017_VSCRSADD, 0x00);             // Vertical scroll zero
     this->sendCommand(TP28017_PIXFMT, 0x55);
-    this->sendCommand(TP28017_FRMCTR1, (uint8_t) 0x00, 0x18); // if we don't cast, then the compiler can't tell whether this is a nullptr or a uint8_t
+    this->sendCommand(TP28017_FRMCTR1, ((uint8_t)0x00), 0x18); // if we don't cast, then the compiler can't tell whether this is a nullptr or a uint8_t
     this->sendCommand(TP28017_DFUNCTR, 0x08, 0x82, 0x27); // Display Function Control
     this->sendCommand(0xF2, 0x00);                         // 3Gamma Function Disable
     this->sendCommand(TP28017_GAMMASET, 0x01);             // Gamma curve selected

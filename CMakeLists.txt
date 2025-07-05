@@ -8,6 +8,7 @@ set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS}")
 
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(ImageMagick COMPONENTS Magick++)
 pkg_check_modules(LIBCAMERA REQUIRED IMPORTED_TARGET libcamera)
 message(STATUS "libcamera library found:")
 message(STATUS "    version: ${LIBCAMERA_VERSION}")
@@ -33,6 +34,6 @@ add_executable(astro-pi
 
 add_subdirectory(spidevpp)
 
-target_link_libraries(astro-pi PRIVATE PkgConfig::LIBEVENT PkgConfig::LIBCAMERA spidevpp wiringPi)
-include_directories(${CMAKE_SOURCE_DIR} ${LIBCAMERA_INCLUDE_DIRS} ${LIBEVENT_INCLUDE_DIRS})
+target_link_libraries(astro-pi PRIVATE PkgConfig::LIBEVENT PkgConfig::LIBCAMERA spidevpp wiringPi ImageMagick::Magick++)
+include_directories(${CMAKE_SOURCE_DIR} ${LIBCAMERA_INCLUDE_DIRS} ${LIBEVENT_INCLUDE_DIRS} ${ImageMagick_Magick++_INCLUDE_DIRS})
 target_include_directories(astro-pi PRIVATE "/usr/include/libcamera")
