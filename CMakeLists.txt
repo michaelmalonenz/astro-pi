@@ -30,6 +30,7 @@ add_executable(astro-pi
     ssd1351.cpp
     tp28017.cpp
     display.cpp
+    client.cpp
 )
 
 add_subdirectory(spidevpp)

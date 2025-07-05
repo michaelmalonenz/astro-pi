@@ -10,7 +10,8 @@
 
 #define USE_SSD1351_DISPLAY (0)
 #define USE_TP28017_DISPLAY (0)
-#define WRITE_IMAGES_TO_FILE (!(USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY))
+#define WRITE_IMAGES_TO_SERVER (1)
+#define WRITE_IMAGES_TO_FILE (0)
 #define SHOW_IMAGE_METADATA (0)
 
 #include <libcamera/libcamera.h>
@@ -22,6 +23,11 @@
 #elif USE_TP28017_DISPLAY
 #include "tp28017.hpp"
 #endif
+
+#if WRITE_IMAGES_TO_SERVER
+#include "client.hpp"
+#endif
+
 
 using namespace libcamera;
 using namespace std::chrono_literals;
@@ -36,6 +42,10 @@ static int _height;
 
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
 static std::unique_ptr<Display> display;
+#endif
+
+#if WRITE_IMAGES_TO_SERVER
+static std::unique_ptr<Client> client;
 #endif
 
 
@@ -125,6 +135,10 @@ static void processRequest(Request *request)
         ss << "output/frame" << std::setw(6) << std::setfill('0') << metadata.sequence << ".jpg";
         my_image.write(ss.str());
 #endif
+#if WRITE_IMAGES_TO_SERVER
+        auto imageData = image->data(0);
+        client->sendImage(imageData.data(), imageData.size(), metadata.sequence);
+#endif
     }
 
     /* Re-queue the Request to the camera. */
@@ -177,6 +191,10 @@ int main()
 #endif
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
     display->fillWithColour(0xf81e);
+#endif
+
+#if WRITE_IMAGES_TO_SERVER
+    client = std::make_unique<Client>("192.168.1.23", 8080);
 #endif
 
     std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});
