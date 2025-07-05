@@ -120,9 +120,9 @@ std::vector<uint8_t> Image::dataAsRGB565()
     std::vector<uint8_t> result;
     auto plane = planes_[0];
     for (int i = 0; i < plane.size(); i+=4) {
-        uint8_t red = plane[i+1];
-        uint8_t green = plane[i+2];
-        uint8_t blue = plane[i+3];
+        uint16_t red = plane[i+2];
+        uint16_t green = plane[i+1];
+        uint16_t blue = plane[i];
         uint16_t rgb = ((red & 0b11111000) << 8) | ((green & 0b11111100) << 3) | (blue >> 3);
         result.push_back((uint8_t)rgb >> 8);
         result.push_back((uint8_t)rgb & 0xFF);
