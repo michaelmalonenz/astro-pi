@@ -6,7 +6,6 @@
 #include <cstring>
 #include <cstdio>
 #include <fcntl.h>
-#include <Magick++.h>
 
 #define USE_SSD1351_DISPLAY (0)
 #define USE_TP28017_DISPLAY (0)
@@ -26,6 +25,10 @@
 
 #if WRITE_IMAGES_TO_SERVER
 #include "client.hpp"
+#endif
+
+#if WRITE_IMAGES_TO_FILE
+#include <Magick++.h>
 #endif
 
 

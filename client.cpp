@@ -15,13 +15,6 @@ Client::Client(const char *host, uint16_t port)
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    int status = getaddrinfo("Lappy2023", NULL, &hints, &res);
-    if (status != 0)
-    {
-        std::cerr << "Could not locate Lappy2023" << std::endl;
-        exit(-1);
-    }
-
     m_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
@@ -45,5 +38,9 @@ void Client::sendImage(uint8_t *buffer, uint32_t length, uint16_t sequence)
     header[4] = length >> 8;
     header[5] = length & 0xFF;
     send(m_socket_fd, header, 6, 0);
-    send(m_socket_fd, buffer, length, 0);
+    uint32_t bytes_sent = 0;
+    while (bytes_sent != length)
+    {
+        bytes_sent += send(m_socket_fd, &buffer[bytes_sent], length-bytes_sent, 0);
+    }
 }

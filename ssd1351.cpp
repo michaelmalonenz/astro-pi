@@ -27,21 +27,44 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     this->sendCommand(SSD1351_CMD_COMMANDLOCK, 0xB1); // Set command lock, 1 arg
     this->sendCommand(SSD1351_CMD_DISPLAYOFF); // Display off, no args
     this->sendCommand(SSD1351_CMD_DISPLAYENHANCE, 0xA4, 0x00, 0x00);
-    this->sendCommand(SSD1351_CMD_CLOCKDIV, 0xF0); // 7:4 = Oscillator Freq, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
-    this->sendCommand(SSD1351_CMD_MUXRATIO, 127);
-    this->sendCommand(SSD1351_CMD_SETREMAP, 0x74);
-    this->sendCommand(SSD1351_CMD_STARTLINE);
+    this->sendCommand(SSD1351_CMD_CLOCKDIV, 0xF1);
+    this->sendCommand(SSD1351_CMD_MUXRATIO, 0x7F);
     this->sendCommand(SSD1351_CMD_DISPLAYOFFSET, 0x0);
+    this->sendCommand(SSD1351_CMD_STARTLINE, 0x00);
+    this->sendCommand(SSD1351_CMD_SETREMAP, 0xB4);
     this->sendCommand(SSD1351_CMD_SETGPIO, 0x00);
     this->sendCommand(SSD1351_CMD_FUNCTIONSELECT, 0x01); // internal (diode drop)
+    this->sendCommand(SSD1351_CMD_SETVSL, 0xA0, 0xB5, 0x55);
+    this->sendCommand(SSD1351_CMD_CONTRASTABC, 0xC8, 0x80, 0xC8);
+    this->sendCommand(SSD1351_CMD_CONTRASTMASTER, 0x0F);
+
+    uint8_t gamma_values[64] = {
+        0x02, 0x03, 0x04, 0x05,
+        0x06, 0x07, 0x08, 0x09,
+        0x0A, 0x0B, 0x0C, 0x0D,
+        0x0E, 0x0F, 0x10, 0x11,
+        0x12, 0x13, 0x15, 0x17,
+        0x19, 0x1B, 0x1D, 0x1F,
+        0x21, 0x23, 0x25, 0x27,
+        0x2A, 0x2D, 0x30, 0x33,
+        0x36, 0x39, 0x3C, 0x3F,
+        0x42, 0x45, 0x48, 0x4C,
+        0x50, 0x54, 0x58, 0x5C,
+        0x60, 0x64, 0x68, 0x6C,
+        0x70, 0x74, 0x78, 0x7D,
+        0x82, 0x87, 0x8C, 0x91,
+        0x96, 0x9B, 0xA0, 0xA5,
+        0xAA, 0xAF, 0xB4,
+    };
+    this->sendCommand(SSD1351_CMD_SETGRAY, gamma_values, 64);
     this->sendCommand(SSD1351_CMD_PRECHARGE, 0x32);
-    this->sendCommand(SSD1351_CMD_PRECHARGELEVEL, 0x1F);
+
+    uint8_t display_enhance_values[3] = {0xA4, 0x00, 0x00};
+    this->sendCommand(SSD1351_CMD_DISPLAYENHANCE, display_enhance_values, 3);
+    this->sendCommand(SSD1351_CMD_PRECHARGELEVEL, 0x17);
+    this->sendCommand(SSD1351_CMD_PRECHARGE2, 0x01);
     this->sendCommand(SSD1351_CMD_VCOMH, 0x05);
     this->sendCommand(SSD1351_CMD_NORMALDISPLAY);
-    this->sendCommand(SSD1351_CMD_CONTRASTMASTER, 0x0A);
-    this->sendCommand(SSD1351_CMD_CONTRASTABC, 0xFF, 0xFF, 0xFF);
-    this->sendCommand(SSD1351_CMD_SETVSL, 0xA0, 0xB5, 0x55);
-    this->sendCommand(SSD1351_CMD_PRECHARGE2, 0x01);
     this->sendCommand(SSD1351_CMD_DISPLAYON);  // Main screen turn on
     this->fillWithColour(0x0); // black / clear the screen
 }
