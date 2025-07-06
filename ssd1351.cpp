@@ -31,14 +31,14 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     this->sendCommand(SSD1351_CMD_MUXRATIO, 0x7F);
     this->sendCommand(SSD1351_CMD_DISPLAYOFFSET, 0x0);
     this->sendCommand(SSD1351_CMD_STARTLINE, 0x00);
-    this->sendCommand(SSD1351_CMD_SETREMAP, 0xB4);
+    this->sendCommand(SSD1351_CMD_SETREMAP, 0x74);
     this->sendCommand(SSD1351_CMD_SETGPIO, 0x00);
     this->sendCommand(SSD1351_CMD_FUNCTIONSELECT, 0x01); // internal (diode drop)
     this->sendCommand(SSD1351_CMD_SETVSL, 0xA0, 0xB5, 0x55);
     this->sendCommand(SSD1351_CMD_CONTRASTABC, 0xC8, 0x80, 0xC8);
     this->sendCommand(SSD1351_CMD_CONTRASTMASTER, 0x0F);
 
-    uint8_t gamma_values[64] = {
+    uint8_t gamma_values[63] = {
         0x02, 0x03, 0x04, 0x05,
         0x06, 0x07, 0x08, 0x09,
         0x0A, 0x0B, 0x0C, 0x0D,
@@ -56,7 +56,7 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
         0x96, 0x9B, 0xA0, 0xA5,
         0xAA, 0xAF, 0xB4,
     };
-    this->sendCommand(SSD1351_CMD_SETGRAY, gamma_values, 64);
+    this->sendCommand(SSD1351_CMD_SETGRAY, gamma_values, 63);
     this->sendCommand(SSD1351_CMD_PRECHARGE, 0x32);
 
     uint8_t display_enhance_values[3] = {0xA4, 0x00, 0x00};

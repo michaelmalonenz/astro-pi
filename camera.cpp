@@ -193,7 +193,7 @@ int main()
     display = std::make_unique<Tp28017>("/dev/spidev0.0", 8,  5,  6);
 #endif
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
-    display->fillWithColour(0xf81e);
+    display->fillWithColour(0xf800);
 #endif
 
 #if WRITE_IMAGES_TO_SERVER
