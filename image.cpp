@@ -4,6 +4,11 @@
  *
  * Multi-planar image with access to pixel data
  */
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STBIW_WINDOWS_UTF8
+#include "stb_image.h"
+#include "stb_image_write.h"
 
 #include "image.h"
 
@@ -15,11 +20,16 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#define IMAGE_COLOUR_SPACE_BYTES 4
+#define JPEG_IMAGE_QUALITY 90
+
 using namespace libcamera;
 
-std::unique_ptr<Image> Image::fromFrameBuffer(const FrameBuffer *buffer, MapMode mode)
+std::unique_ptr<Image> Image::fromFrameBuffer(const FrameBuffer *buffer, MapMode mode, int width, int height)
 {
     std::unique_ptr<Image> image{new Image()};
+    image->m_width = width;
+    image->m_height = height;
 
     assert(!buffer->planes().empty());
 
@@ -128,4 +138,10 @@ std::vector<uint8_t> Image::dataAsRGB565()
         result.push_back((uint8_t)rgb & 0xFF);
     }
     return result;
+}
+
+void Image::writeToFile(std::string filename)
+{
+    auto plane = planes_[0];
+    stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, plane.data(), JPEG_IMAGE_QUALITY);
 }

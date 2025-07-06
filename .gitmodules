@@ -1,3 +1,6 @@
 [submodule "spidevpp"]
 	path = spidevpp
 	url = ssh://git@github.com/michaelmalonenz/spidevpp.git
+[submodule "stb"]
+	path = stb
+	url = https://github.com/nothings/stb

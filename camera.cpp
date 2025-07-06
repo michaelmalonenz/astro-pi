@@ -9,8 +9,8 @@
 
 #define USE_SSD1351_DISPLAY (0)
 #define USE_TP28017_DISPLAY (0)
-#define WRITE_IMAGES_TO_SERVER (1)
-#define WRITE_IMAGES_TO_FILE (0)
+#define WRITE_IMAGES_TO_SERVER (0)
+#define WRITE_IMAGES_TO_FILE (1)
 #define SHOW_IMAGE_METADATA (0)
 
 #include <libcamera/libcamera.h>
@@ -26,11 +26,6 @@
 #if WRITE_IMAGES_TO_SERVER
 #include "client.hpp"
 #endif
-
-#if WRITE_IMAGES_TO_FILE
-#include <Magick++.h>
-#endif
-
 
 using namespace libcamera;
 using namespace std::chrono_literals;
@@ -121,7 +116,7 @@ static void processRequest(Request *request)
          * must be mapped by the application
          */
         std::unique_ptr<Image> image =
-            Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly);
+            Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, _width, _height);
         const unsigned int bytesused = metadata.planes()[0].bytesused;
         auto rgbData = image->dataAsRGB565();
         auto data = libcamera::Span(rgbData.data(), rgbData.size());
@@ -129,14 +124,11 @@ static void processRequest(Request *request)
 
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
         display->drawImage(data);
-#elif WRITE_IMAGES_TO_FILE
-        auto imageData = image->data(0);
-        Magick::Blob blob(imageData.data(), imageData.size());
-        Magick::Geometry size(128, 128);
-        Magick::Image my_image(blob, size);
+#endif
+#if WRITE_IMAGES_TO_FILE
         std::stringstream ss;
         ss << "output/frame" << std::setw(6) << std::setfill('0') << metadata.sequence << ".jpg";
-        my_image.write(ss.str());
+        image->writeToFile(ss.str());
 #endif
 #if WRITE_IMAGES_TO_SERVER
         auto imageData = image->data(0);

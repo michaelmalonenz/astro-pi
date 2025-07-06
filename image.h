@@ -28,7 +28,7 @@ public:
     };
 
     static std::unique_ptr<Image> fromFrameBuffer(const libcamera::FrameBuffer *buffer,
-                                                  MapMode mode);
+                                                  MapMode mode, int width, int height);
 
     ~Image();
 
@@ -37,9 +37,12 @@ public:
     libcamera::Span<uint8_t> data(unsigned int plane);
     libcamera::Span<const uint8_t> data(unsigned int plane) const;
     std::vector<uint8_t> dataAsRGB565();
+    void writeToFile(std::string filename);
 
 private:
     LIBCAMERA_DISABLE_COPY(Image)
+    int m_width;
+    int m_height;
 
     Image();
 
