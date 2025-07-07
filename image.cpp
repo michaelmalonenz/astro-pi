@@ -20,7 +20,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#define IMAGE_COLOUR_SPACE_BYTES 4
+#define IMAGE_COLOUR_SPACE_BYTES 3
 #define JPEG_IMAGE_QUALITY 90
 
 using namespace libcamera;
@@ -140,8 +140,29 @@ std::vector<uint8_t> Image::dataAsRGB565()
     return result;
 }
 
+static uint8_t color565_to_r(uint16_t color) {
+    return ((color & 0xF800) >> 8);  // transform to rrrrrxxx
+}
+static uint8_t color565_to_g(uint16_t color) {
+    return ((color & 0x07E0) >> 3);  // transform to ggggggxx
+}
+static uint8_t color565_to_b(uint16_t color) {
+    return ((color & 0x001F) << 3);  // transform to bbbbbxxx
+}
+
 void Image::writeToFile(std::string filename)
 {
     auto plane = planes_[0];
-    stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, plane.data(), JPEG_IMAGE_QUALITY);
+    std::vector<uint8_t> result;
+    for (int i = 0; i < plane.size(); i+=4) {
+        uint16_t red = plane[i+2];
+        uint16_t green = plane[i+1];
+        uint16_t blue = plane[i];
+        uint16_t rgb = ((red & 0xF8) << 8) | ((green & 0xFB) << 3) | (blue >> 3);
+        result.push_back(color565_to_r(rgb));
+        result.push_back(color565_to_g(rgb));
+        result.push_back(color565_to_b(rgb));
+    }
+
+    stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, result.data(), JPEG_IMAGE_QUALITY);
 }
