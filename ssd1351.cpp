@@ -36,11 +36,11 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     this->sendCommand(SSD1351_CMD_MUXRATIO, 0x7F);
     this->sendCommand(SSD1351_CMD_DISPLAYOFFSET, 0x0);
     this->sendCommand(SSD1351_CMD_STARTLINE, 0x00);
-    this->sendCommand(SSD1351_CMD_SETREMAP, REMAP_VALUE);
+    this->sendCommand(SSD1351_CMD_SETREMAP, (REMAP_VALUE|0x30));
     this->sendCommand(SSD1351_CMD_SETGPIO, 0x00);
     this->sendCommand(SSD1351_CMD_FUNCTIONSELECT, 0x01); // internal (diode drop), set SPI mode
     this->sendCommand(SSD1351_CMD_SETVSL, 0xA0, 0xB5, 0x55);
-    this->sendCommand(SSD1351_CMD_CONTRASTABC, 0xC8, 0x80, 0xC8);
+    this->sendCommand(SSD1351_CMD_CONTRASTABC, 0xFF, 0xFF, 0xFF);
     this->sendCommand(SSD1351_CMD_CONTRASTMASTER, 0x0F);
 
     uint8_t gamma_values[63] = {
@@ -80,7 +80,7 @@ void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
     for (uint8_t y = 0; y < SSD1351HEIGHT; y += 8)
     {
         this->setAddrWindow(0, y, SSD1351WIDTH, 8);
-        this->sendData(&buffer[y*256], 2048);
+        this->sendData(&buffer[y*384], 3072);
     }
 }
 
@@ -93,20 +93,21 @@ void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour)
     }
 }
 
-void Ssd1351::fillWithColour(uint16_t colour)
+void Ssd1351::fillWithColour(uint32_t colour)
 {
     uint32_t numPixels = SSD1351WIDTH * SSD1351HEIGHT;
-    uint8_t buffer[2048];
-    for (uint32_t i = 0; i < 2048; i+=2)
+    uint8_t buffer[3072];
+    for (uint32_t i = 0; i < 3072; i+=3)
     {
-        buffer[i] = (uint8_t)((colour>>8)&0xFF);
-        buffer[i+1] = (uint8_t)(colour & 0xFF);
+        buffer[i] = (uint8_t)((colour>>18)&0xFF);
+	buffer[i+1] = (uint8_t)((colour>>10)&0xFF);
+        buffer[i+2] = (uint8_t)(colour>>2 & 0xFF);
     }
 
     for (uint8_t x = 0; x < SSD1351WIDTH; x += 8)
     {
         this->setAddrWindow(x, 0, 8, SSD1351HEIGHT);
-        this->sendData(buffer, 2048);
+        this->sendData(buffer, 3072);
     }
 }
 

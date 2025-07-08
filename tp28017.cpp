@@ -44,7 +44,7 @@ void Tp28017::drawImage(libcamera::Span<uint8_t>& data)
 void Tp28017::drawPixel(int16_t x, int16_t y, uint16_t color)
 {}
 
-void Tp28017::fillWithColour(uint16_t colour)
+void Tp28017::fillWithColour(uint32_t colour)
 {
     uint32_t numPixels = TP28017_TFTWIDTH * TP28017_TFTHEIGHT;
     uint8_t buffer[2048];
