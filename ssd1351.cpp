@@ -9,7 +9,7 @@
 
 #define SPI_SPEED 8000000
 
-#define REMAP_VALUE (SSD1351_REMAP_HORIZONTAL | SSD1351_REMAP_0_FIRST | SSD1351_REMAP_COLOUR_ORDER_RGB | SSD1351_REMAP_262K_COLOURS)
+#define REMAP_VALUE (SSD1351_REMAP_HORIZONTAL | SSD1351_REMAP_0_FIRST | SSD1351_REMAP_COLOUR_ORDER_RGB | SSD1351_REMAP_ENABLE_COM_SPLIT | SSD1351_REMAP_SCAN_N_TO_0 | SSD1351_REMAP_262K_COLOURS)
 
 
 Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
@@ -36,7 +36,7 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     this->sendCommand(SSD1351_CMD_MUXRATIO, 0x7F);
     this->sendCommand(SSD1351_CMD_DISPLAYOFFSET, 0x0);
     this->sendCommand(SSD1351_CMD_STARTLINE, 0x00);
-    this->sendCommand(SSD1351_CMD_SETREMAP, (REMAP_VALUE|0x30));
+    this->sendCommand(SSD1351_CMD_SETREMAP, REMAP_VALUE);
     this->sendCommand(SSD1351_CMD_SETGPIO, 0x00);
     this->sendCommand(SSD1351_CMD_FUNCTIONSELECT, 0x01); // internal (diode drop), set SPI mode
     this->sendCommand(SSD1351_CMD_SETVSL, 0xA0, 0xB5, 0x55);
@@ -100,7 +100,7 @@ void Ssd1351::fillWithColour(uint32_t colour)
     for (uint32_t i = 0; i < 3072; i+=3)
     {
         buffer[i] = (uint8_t)((colour>>18)&0xFF);
-	buffer[i+1] = (uint8_t)((colour>>10)&0xFF);
+        buffer[i+1] = (uint8_t)((colour>>10)&0xFF);
         buffer[i+2] = (uint8_t)(colour>>2 & 0xFF);
     }
 
