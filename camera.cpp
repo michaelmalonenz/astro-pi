@@ -118,11 +118,11 @@ static void processRequest(Request *request)
         std::unique_ptr<Image> image =
             Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, _width, _height);
         const unsigned int bytesused = metadata.planes()[0].bytesused;
-        auto rgbData = image->dataAsRGB565();
-        auto data = libcamera::Span(rgbData.data(), rgbData.size());
-        const unsigned int length = std::min<unsigned int>(bytesused, data.size());
 
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
+        auto rgbData = image->dataAsRGB888();
+        auto data = libcamera::Span(rgbData.data(), rgbData.size());
+        const unsigned int length = std::min<unsigned int>(bytesused, data.size());
         display->drawImage(data);
 #endif
 #if WRITE_IMAGES_TO_FILE

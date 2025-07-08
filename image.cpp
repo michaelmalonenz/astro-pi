@@ -133,9 +133,23 @@ std::vector<uint8_t> Image::dataAsRGB565()
         uint16_t red = plane[i+2];
         uint16_t green = plane[i+1];
         uint16_t blue = plane[i];
-        uint16_t rgb = ((red & 0b11111000) << 8) | ((green & 0b11111100) << 3) | (blue >> 3);
+        uint16_t rgb = ((red & 0xF8) << 8) | ((green & 0xFC) << 3) | ((blue >> 3) & 0x1F);
         result.push_back((uint8_t)rgb >> 8);
         result.push_back((uint8_t)rgb & 0xFF);
+    }
+    return result;
+}
+
+// Drops the 'X' component
+std::vector<uint8_t> Image::dataAsRGB888()
+{
+    std::vector<uint8_t> result;
+    auto plane = planes_[0];
+    for (int i = 0; i < plane.size(); i+=4) {
+        result.push_back((uint8_t)plane[i+2]);
+        result.push_back((uint8_t)plane[i+1]);
+        result.push_back((uint8_t)plane[i]);
+
     }
     return result;
 }
@@ -158,7 +172,7 @@ void Image::writeToFile(std::string filename)
         uint16_t red = plane[i+2];
         uint16_t green = plane[i+1];
         uint16_t blue = plane[i];
-        uint16_t rgb = ((red & 0xF8) << 8) | ((green & 0xFB) << 3) | (blue >> 3);
+        uint16_t rgb = ((red & 0xF8) << 8) | ((green & 0xFC) << 3) | ((blue >> 3) & 0x1F);
         result.push_back(color565_to_r(rgb));
         result.push_back(color565_to_g(rgb));
         result.push_back(color565_to_b(rgb));

@@ -37,6 +37,7 @@ public:
     libcamera::Span<uint8_t> data(unsigned int plane);
     libcamera::Span<const uint8_t> data(unsigned int plane) const;
     std::vector<uint8_t> dataAsRGB565();
+    std::vector<uint8_t> dataAsRGB888();
     void writeToFile(std::string filename);
 
 private:

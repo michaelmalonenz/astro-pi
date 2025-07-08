@@ -9,6 +9,9 @@
 
 #define SPI_SPEED 8000000
 
+#define REMAP_VALUE (SSD1351_REMAP_HORIZONTAL | SSD1351_REMAP_0_FIRST | SSD1351_REMAP_COLOUR_ORDER_RGB | SSD1351_REMAP_262K_COLOURS)
+
+
 Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     : Display(spi_dev, SPI_SPEED, cs, dc, rst)
 {
@@ -23,17 +26,19 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
 
     // INIT DISPLAY ------------------------------------------------------------
     this->reset();
+
+    // consider waiting 300ms before sending commands?
     this->sendCommand(SSD1351_CMD_COMMANDLOCK, 0x12); // Set command lock, 1 arg
     this->sendCommand(SSD1351_CMD_COMMANDLOCK, 0xB1); // Set command lock, 1 arg
     this->sendCommand(SSD1351_CMD_DISPLAYOFF); // Display off, no args
-    this->sendCommand(SSD1351_CMD_DISPLAYENHANCE, 0xA4, 0x00, 0x00);
+    this->sendCommand(SSD1351_CMD_DISPLAYENHANCE, 0xA4, 0x00, 0x00); // performance mode
     this->sendCommand(SSD1351_CMD_CLOCKDIV, 0xF1);
     this->sendCommand(SSD1351_CMD_MUXRATIO, 0x7F);
     this->sendCommand(SSD1351_CMD_DISPLAYOFFSET, 0x0);
     this->sendCommand(SSD1351_CMD_STARTLINE, 0x00);
-    this->sendCommand(SSD1351_CMD_SETREMAP, 0x74);
+    this->sendCommand(SSD1351_CMD_SETREMAP, REMAP_VALUE);
     this->sendCommand(SSD1351_CMD_SETGPIO, 0x00);
-    this->sendCommand(SSD1351_CMD_FUNCTIONSELECT, 0x01); // internal (diode drop)
+    this->sendCommand(SSD1351_CMD_FUNCTIONSELECT, 0x01); // internal (diode drop), set SPI mode
     this->sendCommand(SSD1351_CMD_SETVSL, 0xA0, 0xB5, 0x55);
     this->sendCommand(SSD1351_CMD_CONTRASTABC, 0xC8, 0x80, 0xC8);
     this->sendCommand(SSD1351_CMD_CONTRASTMASTER, 0x0F);

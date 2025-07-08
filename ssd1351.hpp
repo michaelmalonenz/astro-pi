@@ -38,6 +38,16 @@
 #define SSD1351_CMD_STARTSCROLL 0x9F    ///< Not currently used
 
 
+#define SSD1351_REMAP_HORIZONTAL        0x00
+#define SSD1351_REMAP_VERTICAL          0x01
+#define SSD1351_REMAP_0_FIRST           0x00
+#define SSD1351_REMAP_127_FIRST         0x02
+#define SSD1351_REMAP_COLOUR_ORDER_RGB  0x00
+#define SSD1351_REMAP_COLOUR_ORDER_BGR  0x04
+#define SSD1351_REMAP_65K_COLOURS       0x70
+#define SSD1351_REMAP_262K_COLOURS      0x80
+
+
 class Ssd1351 : public Display {
     public:
         Ssd1351(const char *spi_dev, int cs, int dc, int rst = -1);
