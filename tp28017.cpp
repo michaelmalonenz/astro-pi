@@ -2,6 +2,8 @@
 
 #define SPI_SPEED 80000000
 
+#define BYTES_PER_PIXEL 3
+#define BUFFER_STRIDE 8
 
 Tp28017::Tp28017(const char *spi_dev, int cs, int dc, int rst)
     : Display(spi_dev, SPI_SPEED, cs, dc, rst)
@@ -20,18 +22,18 @@ Tp28017::Tp28017(const char *spi_dev, int cs, int dc, int rst)
     this->sendCommand(TP28017_VMCTR1, 0x3e, 0x28);       // VCM control
     this->sendCommand(TP28017_VMCTR2, 0x86);             // VCM control2
     this->sendCommand(TP28017_MADCTL, 0x48);             // Memory Access Control
-    this->sendCommand(TP28017_VSCRSADD, 0x00);             // Vertical scroll zero
-    this->sendCommand(TP28017_PIXFMT, 0x55);
+    this->sendCommand(TP28017_VSCRSADD, 0x00);           // Vertical scroll zero
+    this->sendCommand(TP28017_PIXFMT, 0x55);             // 18 bits per pixel
     this->sendCommand(TP28017_FRMCTR1, ((uint8_t)0x00), 0x18); // if we don't cast, then the compiler can't tell whether this is a nullptr or a uint8_t
     this->sendCommand(TP28017_DFUNCTR, 0x08, 0x82, 0x27); // Display Function Control
     this->sendCommand(0xF2, 0x00);                         // 3Gamma Function Disable
     this->sendCommand(TP28017_GAMMASET, 0x01);             // Gamma curve selected
 
-    uint8_t buffer[15] = {0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, // Set Gamma
+    uint8_t buffer[15] = {0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, // Set Positive Gamma
     0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00};
     this->sendCommand(TP28017_GMCTRP1, buffer, 15);
 
-    uint8_t buffer2[15] = {0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, // Set Gamma
+    uint8_t buffer2[15] = {0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, // Set Negative Gamma
     0x31, 0xC1, 0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F};
     this->sendCommand(TP28017_GMCTRN1, buffer2, 15);
     this->sendCommand(TP28017_SLPOUT, 0x80);                // Exit Sleep
@@ -39,30 +41,48 @@ Tp28017::Tp28017(const char *spi_dev, int cs, int dc, int rst)
 }
 
 void Tp28017::drawImage(libcamera::Span<uint8_t>& data)
-{}
+{
+    int buffer_size = TP28017_TFTHEIGHT * BUFFER_STRIDE * BYTES_PER_PIXEL;
+    for (uint32_t y = 0; y < TP28017_TFTHEIGHT; y += 8)
+    {
+        this->setAddrWindow(0, y, TP28017_TFTWIDTH, 8);
+        this->sendData(&data[y*TP28017_TFTHEIGHT*BYTES_PER_PIXEL], buffer_size);
+    }
+}
 
-void Tp28017::drawPixel(int16_t x, int16_t y, uint16_t color)
-{}
+void Tp28017::drawPixel(int16_t x, int16_t y, uint32_t colour)
+{
+    uint8_t buffer[BYTES_PER_PIXEL] = {
+        (uint8_t) (colour >> 16 & 0xFF),
+        (uint8_t) (colour >>  8 & 0xFF),
+        (uint8_t) (colour       & 0xFF),
+    };
+    this->setAddrWindow(x, y, 1, 1);
+    this->sendData(buffer, BYTES_PER_PIXEL);
+}
 
 void Tp28017::fillWithColour(uint32_t colour)
 {
-    uint32_t numPixels = TP28017_TFTWIDTH * TP28017_TFTHEIGHT;
-    uint8_t buffer[2048];
-    for (uint32_t i = 0; i < 2048; i+=2)
+    int buffer_size = TP28017_TFTHEIGHT * BUFFER_STRIDE * BYTES_PER_PIXEL;
+    uint8_t buffer[buffer_size];
+    for (uint32_t i = 0; i < buffer_size; i+=BYTES_PER_PIXEL)
     {
-        buffer[i] = (uint8_t)((colour>>8)&0xFF);
-        buffer[i+1] = (uint8_t)(colour & 0xFF);
+        buffer[i]   = (uint8_t)((colour >> 16) & 0xFF);
+        buffer[i+1] = (uint8_t)((colour >>  8) & 0xFF);
+        buffer[i+2] = (uint8_t)((colour      ) & 0xFF);
     }
 
-    for (uint8_t x = 0; x < TP28017_TFTWIDTH; x += 8)
+    for (uint8_t x = 0; x < TP28017_TFTWIDTH; x += BUFFER_STRIDE)
     {
-        this->setAddrWindow(x, 0, 8, TP28017_TFTHEIGHT);
-        this->sendData(buffer, 2048);
+        this->setAddrWindow(x, 0, BUFFER_STRIDE, TP28017_TFTHEIGHT);
+        this->sendData(buffer, buffer_size);
     }
 }
 
 void Tp28017::displayOff()
-{}
+{
+    this->sendCommand(TP28017_DISPOFF, 0x80);
+}
 
 void Tp28017::spiWrite16(uint16_t data)
 {

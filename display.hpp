@@ -12,7 +12,7 @@ class Display {
     public:
         Display(const char *spi_dev, int spi_speed, int cs, int dc, int rst = -1);
         virtual void drawImage(libcamera::Span<uint8_t>& data) = 0;
-        virtual void drawPixel(int16_t x, int16_t y, uint16_t color) = 0;
+        virtual void drawPixel(int16_t x, int16_t y, uint32_t color) = 0;
         virtual void fillWithColour(uint32_t colour) = 0;
         virtual void displayOff() = 0;
         ~Display();

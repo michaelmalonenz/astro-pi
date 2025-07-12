@@ -56,7 +56,7 @@ class Ssd1351 : public Display {
     public:
         Ssd1351(const char *spi_dev, int cs, int dc, int rst = -1);
         void drawImage(libcamera::Span<uint8_t>& data) override;
-        void drawPixel(int16_t x, int16_t y, uint16_t color) override;
+        void drawPixel(int16_t x, int16_t y, uint32_t color) override;
         void fillWithColour(uint32_t colour) override;
         void displayOff() override;
     protected:

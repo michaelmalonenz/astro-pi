@@ -84,7 +84,7 @@ void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
     }
 }
 
-void Ssd1351::drawPixel(int16_t x, int16_t y, uint16_t colour)
+void Ssd1351::drawPixel(int16_t x, int16_t y, uint32_t colour)
 {
     if ((x >= 0) && (x < SSD1351WIDTH) && (y >= 0) && (y < SSD1351HEIGHT)) {
         uint8_t buffer[2] = {(uint8_t)(colour>>8), (uint8_t) (colour & 0x00FF)};
@@ -99,9 +99,9 @@ void Ssd1351::fillWithColour(uint32_t colour)
     uint8_t buffer[3072];
     for (uint32_t i = 0; i < 3072; i+=3)
     {
-        buffer[i] = (uint8_t)((colour>>18)&0xFF);
-        buffer[i+1] = (uint8_t)((colour>>10)&0xFF);
-        buffer[i+2] = (uint8_t)(colour>>2 & 0xFF);
+        buffer[i]   = (uint8_t)((colour >> 18) & 0xFF);
+        buffer[i+1] = (uint8_t)((colour >> 10) & 0xFF);
+        buffer[i+2] = (uint8_t)((colour >> 2 ) & 0xFF);
     }
 
     for (uint8_t x = 0; x < SSD1351WIDTH; x += 8)
