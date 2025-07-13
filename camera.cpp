@@ -146,7 +146,7 @@ static void requestComplete(Request *request)
     loop.callLater(std::bind(&processRequest, request));
 }
 
-static std::chrono::time_point<std::chrono::steady_clock> _last_press_time = 0;
+static std::chrono::time_point<std::chrono::steady_clock> _last_press_time;
 static void shutterButtonPress()
 {
     auto duration = std::chrono::steady_clock::now() - _last_press_time;
