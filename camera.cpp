@@ -3,6 +3,7 @@
 #include <sstream>
 #include <memory>
 #include <thread>
+#include <chrono>
 #include <cstring>
 #include <cstdio>
 #include <fcntl.h>
@@ -12,7 +13,10 @@
 #define WRITE_IMAGES_TO_FILE (1)
 #define SHOW_IMAGE_METADATA (0)
 
+#define BUTTON_GPIO_PIN 17
+
 #include <libcamera/libcamera.h>
+#include <wiringPi.h>
 #include "event_loop.h"
 #include "image.h"
 
@@ -142,6 +146,18 @@ static void requestComplete(Request *request)
     loop.callLater(std::bind(&processRequest, request));
 }
 
+static std::chrono::time_point<std::chrono::steady_clock> _last_press_time = 0;
+static void shutterButtonPress()
+{
+    auto duration = std::chrono::steady_clock::now() - _last_press_time;
+    if (duration > std::chrono::milliseconds{150})
+    {
+        _last_press_time = std::chrono::steady_clock::now();
+        // button pressed
+        std::cout << "Shutter Button Pressed!" << std::endl;
+    }
+}
+
 int main()
 {
     std::unique_ptr<CameraManager> cm = std::make_unique<CameraManager>();
@@ -167,6 +183,11 @@ int main()
         return EXIT_FAILURE;
     }
 
+    wiringPiSetup();
+    wiringPiSetupGpio();
+    pinMode(BUTTON_GPIO_PIN, INPUT);
+    wiringPiISR(BUTTON_GPIO_PIN, INT_EDGE_FALLING, &shutterButtonPress);
+
 #if USE_SSD1351_DISPLAY
     //                                                   cs, dc, rst
     display = std::make_unique<Ssd1351>("/dev/spidev0.0", 8,  5,  6);
@@ -182,19 +203,11 @@ int main()
     StreamConfiguration &viewFinderStreamConfig = config->at(0);
     std::cout << "Default ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
 
-    // StreamConfiguration &stillCaptureStreamConfig = config->at(1);
-    // std::cout << "Default StillCapture configuration is: " << stillCaptureStreamConfig.toString() << std::endl;
-
     viewFinderStreamConfig.size.width = 128;
     viewFinderStreamConfig.size.height = 128;
 
     config->validate();
     std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
-    // std::cout << "Validated StillCapture configuration is: " << stillCaptureStreamConfig.toString() << std::endl;
-    // if (stillCaptureStreamConfig.colorSpace.has_value())
-    // {
-    //     std::cout << "Still Capture Colour Space: " << stillCaptureStreamConfig.colorSpace.value().toString() << std::endl;
-    // }
 
     _width = viewFinderStreamConfig.size.width;
     _height = viewFinderStreamConfig.size.height;

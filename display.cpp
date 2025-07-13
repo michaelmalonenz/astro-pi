@@ -13,8 +13,6 @@ Display::Display(const char *spi_dev, int spi_speed, int cs, int dc, int rst)
     this->m_spi = std::make_unique<spidevpp::Spi>(spi_dev);
     this->m_spi->setBitsPerWord(8);
     this->m_spi->setSpeed(spi_speed);
-    wiringPiSetup();
-    wiringPiSetupGpio();
 
     pinMode(this->m_cs, OUTPUT);
     pinMode(this->m_dc, OUTPUT);
