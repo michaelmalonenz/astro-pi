@@ -147,10 +147,11 @@ static void requestComplete(Request *request)
 }
 
 static std::chrono::time_point<std::chrono::steady_clock> _last_press_time;
+static const std::chrono::milliseconds _debounce_duration{150};
 static void shutterButtonPress()
 {
     auto duration = std::chrono::steady_clock::now() - _last_press_time;
-    if (duration > std::chrono::milliseconds{150})
+    if (duration > _debounce_duration)
     {
         _last_press_time = std::chrono::steady_clock::now();
         // button pressed
@@ -186,6 +187,7 @@ int main()
     wiringPiSetup();
     wiringPiSetupGpio();
     pinMode(BUTTON_GPIO_PIN, INPUT);
+    pullUpDnControl(BUTTON_GPIO_PIN, PUD_UP);
     wiringPiISR(BUTTON_GPIO_PIN, INT_EDGE_FALLING, &shutterButtonPress);
 
 #if USE_SSD1351_DISPLAY
