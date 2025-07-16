@@ -34,7 +34,10 @@ using namespace libcamera;
 using namespace std::chrono_literals;
 
 #define TIMEOUT_SEC 3
+#define VIEWFINDER_COOKIE 0x0001
+#define STILL_CAPTURE_COOKIE 0x0010
 
+static int64_t _cookies[2] = {VIEWFINDER_COOKIE, STILL_CAPTURE_COOKIE};
 
 static std::shared_ptr<Camera> camera;
 static EventLoop loop;
@@ -117,22 +120,33 @@ static void processRequest(Request *request)
             Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, _width, _height);
 
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
-        auto rgbData = image->dataAsRGB888();
-        auto data = libcamera::Span(rgbData.data(), rgbData.size());
-        const unsigned int bytesused = metadata.planes()[0].bytesused;
-        const unsigned int length = std::min<unsigned int>(bytesused, data.size());
-        display->drawImage(data);
+        if (request->cookie() == VIEWFINDER_COOKIE)
+        {
+            auto rgbData = image->dataAsRGB888();
+            auto data = libcamera::Span(rgbData.data(), rgbData.size());
+            const unsigned int bytesused = metadata.planes()[0].bytesused;
+            const unsigned int length = std::min<unsigned int>(bytesused, data.size());
+            display->drawImage(data);
+        }
 #endif
 #if WRITE_IMAGES_TO_FILE
         std::stringstream ss;
         ss << "output/frame" << std::setw(6) << std::setfill('0') << metadata.sequence << ".jpg";
         image->writeToFile(ss.str());
 #endif
+        if (request->cookie() == STILL_CAPTURE_COOKIE)
+        {
+            // Get SD Card working. Write it there.
+            std::stringstream ss;
+            ss << "stills/frame" << std::setw(6) << std::setfill('0') << metadata.sequence << ".jpg";
+            image->writeToFile(ss.str());
+        }
     }
 
     /* Re-queue the Request to the camera. */
     request->reuse(Request::ReuseBuffers);
-    camera->queueRequest(request);
+    if (request->cookie() != STILL_CAPTURE_COOKIE)
+        camera->queueRequest(request);
 }
 
 static void requestComplete(Request *request)
@@ -201,7 +215,7 @@ int main()
     display->fillWithColour(0xff0000);
 #endif
 
-    std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder});
+    std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder, StreamRole::StillCapture});
     StreamConfiguration &viewFinderStreamConfig = config->at(0);
     std::cout << "Default ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
 
@@ -221,6 +235,8 @@ int main()
 
     FrameBufferAllocator *allocator = new FrameBufferAllocator(camera);
 
+    int cookieIndex = 0;
+    std::vector<std::unique_ptr<Request>> requests;
     for (StreamConfiguration &cfg : *config)
     {
         int ret = allocator->allocate(cfg.stream());
@@ -230,51 +246,30 @@ int main()
             return -ENOMEM;
         }
 
-        size_t allocated = allocator->buffers(cfg.stream()).size();
+        const std::vector<std::unique_ptr<FrameBuffer>> &buffers = allocator->buffers(cfg.stream());
+        size_t allocated = buffers.size();
         std::cout << "Allocated " << allocated << " buffers for stream" << std::endl;
-    }
-
-    /*
-     * --------------------------------------------------------------------
-     * Frame Capture
-     *
-     * libcamera frames capture model is based on the 'Request' concept.
-     * For each frame a Request has to be queued to the Camera.
-     *
-     * A Request refers to (at least one) Stream for which a Buffer that
-     * will be filled with image data shall be added to the Request.
-     *
-     * A Request is associated with a list of Controls, which are tunable
-     * parameters (similar to v4l2_controls) that have to be applied to
-     * the image.
-     *
-     * Once a request completes, all its buffers will contain image data
-     * that applications can access and for each of them a list of metadata
-     * properties that reports the capture parameters applied to the image.
-     */
-    Stream *stream = viewFinderStreamConfig.stream();
-    const std::vector<std::unique_ptr<FrameBuffer>> &buffers = allocator->buffers(stream);
-    std::vector<std::unique_ptr<Request>> requests;
-
-    for (unsigned int i = 0; i < buffers.size(); ++i)
-    {
-        std::unique_ptr<Request> request = camera->createRequest();
-        if (!request)
+        for (unsigned int i = 0; i < buffers.size(); ++i)
         {
-            std::cerr << "Can't create request" << std::endl;
-            return -ENOMEM;
-        }
+            std::unique_ptr<Request> request = camera->createRequest(_cookies[cookieIndex]);
+            if (!request)
+            {
+                std::cerr << "Can't create request" << std::endl;
+                return -ENOMEM;
+            }
 
-        const std::unique_ptr<FrameBuffer> &buffer = buffers[i];
-        int ret = request->addBuffer(stream, buffer.get());
-        if (ret < 0)
-        {
-            std::cerr << "Can't set buffer for request"
-                      << std::endl;
-            return ret;
-        }
+            const std::unique_ptr<FrameBuffer> &buffer = buffers[i];
+            int ret = request->addBuffer(cfg.stream(), buffer.get());
+            if (ret < 0)
+            {
+                std::cerr << "Can't set buffer for request"
+                        << std::endl;
+                return ret;
+            }
 
-        requests.push_back(std::move(request));
+            requests.push_back(std::move(request));
+        }
+        cookieIndex++;
     }
 
     camera->requestCompleted.connect(requestComplete);
@@ -296,7 +291,10 @@ int main()
               << "stopped with exit status: " << ret << std::endl;
 
     camera->stop();
-    allocator->free(stream);
+    for (StreamConfiguration &cfg : *config)
+    {
+        allocator->free(cfg.stream());
+    }
     delete allocator;
     camera->release();
     camera.reset();
