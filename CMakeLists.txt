@@ -23,12 +23,14 @@ message(STATUS "    libraries: ${LIBEVENT_LINK_LIBRARIES}")
 message(STATUS "    include path: ${LIBEVENT_INCLUDE_DIRS}")
 
 add_executable(astro-pi
+    button.cpp
     camera.cpp
     event_loop.cpp
     image.cpp
     ssd1351.cpp
     tp28017.cpp
     display.cpp
+    astro_camera.cpp
 )
 
 add_subdirectory(spidevpp)

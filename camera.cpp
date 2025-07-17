@@ -19,6 +19,7 @@
 #include <wiringPi.h>
 #include "event_loop.h"
 #include "image.h"
+#include "button.hpp"
 
 #if USE_SSD1351_DISPLAY
 #include "ssd1351.hpp"
@@ -37,7 +38,7 @@ using namespace std::chrono_literals;
 #define VIEWFINDER_COOKIE 0x0001
 #define STILL_CAPTURE_COOKIE 0x0010
 
-static int64_t _cookies[2] = {VIEWFINDER_COOKIE, STILL_CAPTURE_COOKIE};
+static uint64_t _cookies[2] = {VIEWFINDER_COOKIE, STILL_CAPTURE_COOKIE};
 
 static std::shared_ptr<Camera> camera;
 static EventLoop loop;
@@ -200,9 +201,8 @@ int main()
 
     wiringPiSetup();
     wiringPiSetupGpio();
-    pinMode(BUTTON_GPIO_PIN, INPUT);
-    pullUpDnControl(BUTTON_GPIO_PIN, PUD_UP);
-    wiringPiISR(BUTTON_GPIO_PIN, INT_EDGE_FALLING, &shutterButtonPress);
+
+    std::unique_ptr<Button> shutter = std::make_unique<Button>(BUTTON_GPIO_PIN, &shutterButtonPress);
 
 #if USE_SSD1351_DISPLAY
     //                                                   cs, dc, rst
