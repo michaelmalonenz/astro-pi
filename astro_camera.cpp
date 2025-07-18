@@ -31,7 +31,7 @@ void AstroCamera::start(process_request_t processRequest)
         throw std::runtime_error("Failed to configure camera");
     }
 
-    m_viewfinder_requests = allocateStream(m_viewfinder_config->at(0));
+    m_viewfinder_requests = allocateStream(m_viewfinder_config->at(0), VIEWFINDER_COOKIE);
 
     m_camera->requestCompleted.connect(processRequest);
     m_camera->start();
@@ -72,10 +72,20 @@ std::vector<std::unique_ptr<Request>> AstroCamera::allocateStream(StreamConfigur
     return requests;
 }
 
-void AstroCamera::requestStillFrame()
+void AstroCamera::requestStillFrame(process_request_t processRequest)
 {
-    // for (auto &request : m_still_requests)
-    // {
-    //     m_camera->queueRequest(request.get());
-    // }
+    auto config = m_camera->generateConfiguration({StreamRole::Viewfinder});
+    StreamConfiguration &streamConfig = config->at(0);
+    std::cout << "Default Still configuration is: " << streamConfig.toString() << std::endl;
+    config->validate();
+    std::cout << "Validated Still configuration is: " << streamConfig.toString() << std::endl;
+
+    if (m_camera->configure(config.get()) < 0)
+    {
+        throw std::runtime_error("Failed to configure camera");
+    }
+    m_still_requests = allocateStream(config->at(0), STILL_CAPTURE_COOKIE);
+    m_camera->requestCompleted.connect(processRequest);
+    for (std::unique_ptr<Request> &request : m_still_requests)
+        m_camera->queueRequest(request.get());
 }

@@ -9,7 +9,7 @@
 #include <fcntl.h>
 
 #define USE_SSD1351_DISPLAY (0)
-#define USE_TP28017_DISPLAY (0)
+#define USE_TP28017_DISPLAY (1)
 #define WRITE_IMAGES_TO_FILE (1)
 #define SHOW_IMAGE_METADATA (0)
 
@@ -36,11 +36,8 @@ using namespace libcamera;
 using namespace std::chrono_literals;
 
 #define TIMEOUT_SEC 3
-#define VIEWFINDER_COOKIE 0x0001
-#define STILL_CAPTURE_COOKIE 0x0010
 
-// static uint64_t _cookies[2] = {VIEWFINDER_COOKIE, STILL_CAPTURE_COOKIE};
-
+static std::unique_ptr<AstroCamera> astro_cam;
 static std::shared_ptr<Camera> camera;
 static EventLoop loop;
 static int _width;
@@ -150,8 +147,7 @@ static void shutterButtonPress()
     if (duration > _debounce_duration)
     {
         _last_press_time = std::chrono::steady_clock::now();
-        // button pressed
-        std::cout << "Shutter Button Pressed!" << std::endl;
+        astro_cam->requestStillFrame(&requestComplete);
     }
 }
 
@@ -198,7 +194,7 @@ int main()
     display->fillWithColour(0xff0000);
 #endif
 
-    std::unique_ptr<AstroCamera> astro_cam = std::make_unique<AstroCamera>(camera);
+    astro_cam = std::make_unique<AstroCamera>(camera);
     astro_cam->start(&requestComplete);
 
     // loop.timeout(TIMEOUT_SEC);
