@@ -65,15 +65,24 @@
 // #define TP28017_PWCTR6     0xFC
 
 
-class Tp28017 : public Display {
+class Tp28017 {
+    int m_cs, m_cd, m_rd, m_wr, m_rst;
     public:
-        Tp28017(const char *spi_dev, int cs, int dc, int rst = -1);
-        void drawImage(libcamera::Span<uint8_t>& data) override;
-        void drawPixel(int16_t x, int16_t y, uint32_t color) override;
-        void fillWithColour(uint32_t colour) override;
-        void displayOff() override;
+        Tp28017(int cs, int rs, int rd, int wr, int rst = -1);
+        void drawImage(libcamera::Span<uint8_t>& data);
+        void drawPixel(int16_t x, int16_t y, uint32_t color);
+        void fillWithColour(uint32_t colour);
+        void displayOff();
     protected:
-        void setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h) override;
+        void setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h);
     private:
-        void spiWrite16(uint16_t data);
+        void sendData(uint8_t *buffer, int bufferLen);
+        void sendCommand(uint8_t *args, int argLen, int command);
+        void sendCommand(uint8_t cmd);
+        void sendCommand(uint8_t cmd, uint8_t arg1);
+        void sendCommand(uint8_t cmd, uint8_t arg1, uint8_t arg2);
+        void sendCommand(uint8_t cmd, uint8_t arg1, uint8_t arg2, uint8_t arg3);
+        void sendCommand(uint8_t cmd, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4);
+        void sendCommand(uint8_t cmd, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4, uint8_t arg5);
+        void writeData16(uint16_t data);
 };

@@ -46,8 +46,11 @@ static EventLoop loop;
 static int _width;
 static int _height;
 
-#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
+#if USE_SSD1351_DISPLAY
 static std::unique_ptr<Display> display;
+#endif
+#if USE_TP28017_DISPLAY
+static std::unique_ptr<Tp28017> display;
 #endif
 
 static void processRequest(Request *request)
@@ -188,8 +191,8 @@ int main()
     //                                                   cs, dc, rst
     display = std::make_unique<Ssd1351>("/dev/spidev0.0", 8,  5,  6);
 #elif USE_TP28017_DISPLAY
-    //                                                   cs, dc, rst
-    display = std::make_unique<Tp28017>("/dev/spidev0.0", 8,  5,  6);
+    //                                  cs, rs, rd, wr, rst)
+    display = std::make_unique<Tp28017>(19, 16, 20, 26, 21);
 #endif
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
     display->fillWithColour(0xff0000);
