@@ -20,6 +20,7 @@
 #include "event_loop.h"
 #include "image.h"
 #include "button.hpp"
+#include "astro_camera.hpp"
 
 #if USE_SSD1351_DISPLAY
 #include "ssd1351.hpp"
@@ -38,7 +39,7 @@ using namespace std::chrono_literals;
 #define VIEWFINDER_COOKIE 0x0001
 #define STILL_CAPTURE_COOKIE 0x0010
 
-static uint64_t _cookies[2] = {VIEWFINDER_COOKIE, STILL_CAPTURE_COOKIE};
+// static uint64_t _cookies[2] = {VIEWFINDER_COOKIE, STILL_CAPTURE_COOKIE};
 
 static std::shared_ptr<Camera> camera;
 static EventLoop loop;
@@ -54,20 +55,7 @@ static void processRequest(Request *request)
 #if SHOW_IMAGE_METADATA
     std::cout << std::endl
               << "Request completed: " << request->toString() << std::endl;
-#endif
 
-    /*
-     * When a request has completed, it is populated with a metadata control
-     * list that allows an application to determine various properties of
-     * the completed request. This can include the timestamp of the Sensor
-     * capture, or its gain and exposure values, or properties from the IPA
-     * such as the state of the 3A algorithms.
-     *
-     * ControlValue types have a toString, so to examine each request, print
-     * all the metadata for inspection. A custom application can parse each
-     * of these items and process them according to its needs.
-     */
-#if SHOW_IMAGE_METADATA
     const ControlList &requestMetadata = request->metadata();
     for (const auto &ctrl : requestMetadata)
     {
@@ -79,16 +67,6 @@ static void processRequest(Request *request)
     }
 #endif
 
-    /*
-     * Each buffer has its own FrameMetadata to describe its state, or the
-     * usage of each buffer. While in our simple capture we only provide one
-     * buffer per request, a request can have a buffer for each stream that
-     * is established when configuring the camera.
-     *
-     * This allows a viewfinder and a still image to be processed at the
-     * same time, or to allow obtaining the RAW capture buffer from the
-     * sensor along with the image as processed by the ISP.
-     */
     const Request::BufferMap &buffers = request->buffers();
     for (auto bufferPair : buffers)
     {
@@ -199,10 +177,12 @@ int main()
         return EXIT_FAILURE;
     }
 
+#ifdef __arm__
     wiringPiSetup();
     wiringPiSetupGpio();
 
     std::unique_ptr<Button> shutter = std::make_unique<Button>(BUTTON_GPIO_PIN, &shutterButtonPress);
+#endif
 
 #if USE_SSD1351_DISPLAY
     //                                                   cs, dc, rst
@@ -215,87 +195,15 @@ int main()
     display->fillWithColour(0xff0000);
 #endif
 
-    std::unique_ptr<CameraConfiguration> config = camera->generateConfiguration({StreamRole::Viewfinder, StreamRole::StillCapture});
-    StreamConfiguration &viewFinderStreamConfig = config->at(0);
-    std::cout << "Default ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
+    std::unique_ptr<AstroCamera> astro_cam = std::make_unique<AstroCamera>(camera);
+    astro_cam->start(&requestComplete);
 
-    viewFinderStreamConfig.size.width = 128;
-    viewFinderStreamConfig.size.height = 128;
-
-    config->validate();
-    std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
-
-    _width = viewFinderStreamConfig.size.width;
-    _height = viewFinderStreamConfig.size.height;
-
-    if (camera->configure(config.get()) < 0)
-    {
-        std::cout << "Failed to configure camera" << std::endl;
-    }
-
-    FrameBufferAllocator *allocator = new FrameBufferAllocator(camera);
-
-    int cookieIndex = 0;
-    std::vector<std::unique_ptr<Request>> requests;
-    for (StreamConfiguration &cfg : *config)
-    {
-        int ret = allocator->allocate(cfg.stream());
-        if (ret < 0)
-        {
-            std::cerr << "Can't allocate buffers" << std::endl;
-            return -ENOMEM;
-        }
-
-        const std::vector<std::unique_ptr<FrameBuffer>> &buffers = allocator->buffers(cfg.stream());
-        size_t allocated = buffers.size();
-        std::cout << "Allocated " << allocated << " buffers for stream" << std::endl;
-        for (unsigned int i = 0; i < buffers.size(); ++i)
-        {
-            std::unique_ptr<Request> request = camera->createRequest(_cookies[cookieIndex]);
-            if (!request)
-            {
-                std::cerr << "Can't create request" << std::endl;
-                return -ENOMEM;
-            }
-
-            const std::unique_ptr<FrameBuffer> &buffer = buffers[i];
-            int ret = request->addBuffer(cfg.stream(), buffer.get());
-            if (ret < 0)
-            {
-                std::cerr << "Can't set buffer for request"
-                        << std::endl;
-                return ret;
-            }
-
-            requests.push_back(std::move(request));
-        }
-        cookieIndex++;
-    }
-
-    camera->requestCompleted.connect(requestComplete);
-
-    camera->start();
-    for (std::unique_ptr<Request> &request : requests)
-        camera->queueRequest(request.get());
-
-    /*
-     * --------------------------------------------------------------------
-     * Run an EventLoop
-     *
-     * In order to dispatch events received from the video devices, such
-     * as buffer completions, an event loop has to be run.
-     */
-    loop.timeout(TIMEOUT_SEC);
+    // loop.timeout(TIMEOUT_SEC);
     int ret = loop.exec();
     std::cout << "Capture ran for " << TIMEOUT_SEC << " seconds and "
               << "stopped with exit status: " << ret << std::endl;
 
     camera->stop();
-    for (StreamConfiguration &cfg : *config)
-    {
-        allocator->free(cfg.stream());
-    }
-    delete allocator;
     camera->release();
     camera.reset();
     cm->stop();
