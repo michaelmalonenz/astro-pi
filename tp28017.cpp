@@ -56,11 +56,11 @@ Tp28017::Tp28017(int cs, int rs, int rd, int wr, int rst)
 
 void Tp28017::drawImage(libcamera::Span<uint8_t>& data)
 {
-    int buffer_size = TP28017_TFTHEIGHT * BUFFER_STRIDE * BYTES_PER_PIXEL;
-    for (uint32_t y = 0; y < TP28017_TFTHEIGHT; y += 8)
+    int buffer_size = TP28017_TFTWIDTH * BUFFER_STRIDE * BYTES_PER_PIXEL;
+    for (uint32_t y = 0; y < TP28017_TFTHEIGHT; y += BUFFER_STRIDE)
     {
         this->setAddrWindow(0, y, TP28017_TFTWIDTH, 8);
-        this->sendData(&data[y*TP28017_TFTHEIGHT*BYTES_PER_PIXEL], buffer_size);
+        this->sendData(&data[y*TP28017_TFTWIDTH*BYTES_PER_PIXEL], buffer_size);
     }
 }
 

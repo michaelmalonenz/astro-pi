@@ -10,6 +10,7 @@
 #define SPI_SPEED 8000000
 
 #define REMAP_VALUE (SSD1351_REMAP_HORIZONTAL | SSD1351_REMAP_0_FIRST | SSD1351_REMAP_COLOUR_ORDER_RGB | SSD1351_REMAP_ENABLE_COM_SPLIT | SSD1351_REMAP_SCAN_N_TO_0 | SSD1351_REMAP_262K_COLOURS)
+#define BYTES_PER_PIXEL 3
 
 
 Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
@@ -78,7 +79,7 @@ void Ssd1351::drawImage(libcamera::Span<uint8_t>& data)
     for (uint8_t y = 0; y < SSD1351HEIGHT; y += 8)
     {
         this->setAddrWindow(0, y, SSD1351WIDTH, 8);
-        this->sendData(&buffer[y*384], 3072);
+        this->sendData(&buffer[y*SSD1351HEIGHT*BYTES_PER_PIXEL], 3072);
     }
 }
 

@@ -176,7 +176,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-#ifdef __arm__
+#ifdef __ARM_ARCH
     wiringPiSetup();
     wiringPiSetupGpio();
 
