@@ -85,4 +85,5 @@ class Tp28017 {
         void sendCommand(uint8_t cmd, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4);
         void sendCommand(uint8_t cmd, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4, uint8_t arg5);
         void writeData16(uint16_t data);
+        void wrStrobe();
 };

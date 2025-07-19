@@ -141,6 +141,7 @@ void Tp28017::sendData(uint8_t *buffer, int bufferLen)
     for(int i = 0; i < bufferLen; i++)
     {
         digitalWriteByte(buffer[i]);
+        wrStrobe();
     }
 }
 
@@ -149,6 +150,7 @@ void Tp28017::sendCommand(uint8_t *args, int argLen, int command)
     digitalWrite(this->m_cs, LOW);  // chip-select
     digitalWrite(this->m_cd, LOW);  // set command mode
     digitalWriteByte(command);      // write the command
+    wrStrobe();
     digitalWrite(this->m_cd, HIGH); // set data mode
     if (argLen > 0)
         sendData(args, argLen);     // write the data
@@ -189,9 +191,17 @@ void Tp28017::sendCommand(uint8_t cmd, uint8_t arg1, uint8_t arg2, uint8_t arg3,
     sendCommand(args, 5, cmd);
 }
 
+void Tp28017::wrStrobe()
+{
+    digitalWrite(m_wr, LOW);
+    digitalWrite(m_wr, HIGH);
+}
+
 void Tp28017::writeData16(uint16_t data)
 {
     digitalWriteByte((data >> 8));
+    wrStrobe();
     digitalWriteByte((data & 0xFF));
+    wrStrobe();
 }
 
