@@ -23,10 +23,13 @@ void AstroCamera::start()
     StreamConfiguration &viewFinderStreamConfig = m_viewfinder_config->at(0);
     std::cout << "Default ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
 
-    viewFinderStreamConfig.size.width = 128;
-    viewFinderStreamConfig.size.height = 128;
+    // viewFinderStreamConfig.size.width = 128;
+    // viewFinderStreamConfig.size.height = 128;
     viewFinderStreamConfig.pixelFormat = libcamera::formats::RGB888;
 
+    viewFinderStreamConfig.size.width = 320;
+    viewFinderStreamConfig.size.height = 240;
+ 
     m_viewfinder_config->validate();
     std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
 

@@ -5,6 +5,8 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 23 CACHE INTERNAL "Set C++ standard to C++23")
 set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS}")
+set(CMAKE_CXX_FLAGS "-g -ggdb3")
+
 
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)

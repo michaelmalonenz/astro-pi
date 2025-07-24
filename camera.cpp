@@ -10,10 +10,10 @@
 
 #define USE_SSD1351_DISPLAY (0)
 #define USE_TP28017_DISPLAY (1)
-#define WRITE_IMAGES_TO_FILE (1)
+#define WRITE_IMAGES_TO_FILE (0)
 #define SHOW_IMAGE_METADATA (0)
 
-#define BUTTON_GPIO_PIN 17
+#define BUTTON_GPIO_PIN 27
 
 #include <libcamera/libcamera.h>
 #include <wiringPi.h>
@@ -145,6 +145,12 @@ static void requestComplete(Request *request)
     loop.callLater(std::bind(&processRequest, request));
 }
 
+
+void deferredStillRequest()
+{
+    astro_cam->requestStillFrame();
+}
+
 static std::chrono::time_point<std::chrono::steady_clock> _last_press_time;
 static const std::chrono::milliseconds _debounce_duration{150};
 static void shutterButtonPress()
@@ -153,7 +159,7 @@ static void shutterButtonPress()
     if (duration > _debounce_duration)
     {
         _last_press_time = std::chrono::steady_clock::now();
-        astro_cam->requestStillFrame();
+	loop.callLater(deferredStillRequest);
     }
 }
 
@@ -194,7 +200,7 @@ int main()
     display = std::make_unique<Ssd1351>("/dev/spidev0.0", 8,  5,  6);
 #elif USE_TP28017_DISPLAY
     //                                  cs, rs, rd, wr, rst)
-    display = std::make_unique<Tp28017>(19, 16, 20, 26, 21);
+    display = std::make_unique<Tp28017>(19, 16, 20, 26,   5);
 #endif
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
     display->fillWithColour(0xff0000);
