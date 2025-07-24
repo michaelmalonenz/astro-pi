@@ -51,7 +51,10 @@ void AstroCamera::startPreview()
         throw std::runtime_error("Failed to configure camera");
     }
 
-    m_viewfinder_requests = allocateStream(m_viewfinder_config->at(0), VIEWFINDER_COOKIE);
+    if (m_allocator->buffers(m_viewfinder_config->at(0).stream()).size() == 0)
+    {
+        m_viewfinder_requests = allocateStream(m_viewfinder_config->at(0), VIEWFINDER_COOKIE);
+    }
 
     m_camera->start();
     for (std::unique_ptr<Request> &request : m_viewfinder_requests)
@@ -105,7 +108,10 @@ void AstroCamera::requestStillFrame()
     {
         throw std::runtime_error("Failed to configure camera");
     }
-    m_still_requests = allocateStream(m_still_config->at(0), STILL_CAPTURE_COOKIE);
+    if (m_allocator->buffers(m_still_config->at(0).stream()).size() == 0)
+    {
+    	m_still_requests = allocateStream(m_still_config->at(0), STILL_CAPTURE_COOKIE);
+    }
     m_camera->start();
     for (std::unique_ptr<Request> &request : m_still_requests)
     {
