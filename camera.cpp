@@ -123,9 +123,15 @@ static void processRequest(Request *request)
     }
 
     /* Re-queue the Request to the camera. */
-    request->reuse(Request::ReuseBuffers);
-    if (request->cookie() != STILL_CAPTURE_COOKIE)
+    if (request->cookie() == VIEWFINDER_COOKIE)
+    {
+        request->reuse(Request::ReuseBuffers);
         camera->queueRequest(request);
+    }
+    else
+    {
+        astro_cam->startPreview();
+    }
 }
 
 static void requestComplete(Request *request)
@@ -147,7 +153,7 @@ static void shutterButtonPress()
     if (duration > _debounce_duration)
     {
         _last_press_time = std::chrono::steady_clock::now();
-        astro_cam->requestStillFrame(&requestComplete);
+        astro_cam->requestStillFrame();
     }
 }
 
@@ -194,8 +200,8 @@ int main()
     display->fillWithColour(0xff0000);
 #endif
 
-    astro_cam = std::make_unique<AstroCamera>(camera);
-    astro_cam->start(&requestComplete);
+    astro_cam = std::make_unique<AstroCamera>(camera, &requestComplete);
+    astro_cam->start();
 
     // loop.timeout(TIMEOUT_SEC);
     int ret = loop.exec();

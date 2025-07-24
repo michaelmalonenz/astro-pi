@@ -14,11 +14,13 @@ class AstroCamera {
     std::vector<std::unique_ptr<libcamera::Request>> m_viewfinder_requests;
     std::unique_ptr<libcamera::CameraConfiguration> m_viewfinder_config;
     std::vector<std::unique_ptr<libcamera::Request>> m_still_requests;
+    std::unique_ptr<libcamera::CameraConfiguration> m_still_config;
 
     public:
-        AstroCamera(std::shared_ptr<libcamera::Camera>);
-        void requestStillFrame(process_request_t processRequest);
-        void start(process_request_t processRequest);
+        AstroCamera(std::shared_ptr<libcamera::Camera>, process_request_t processRequest);
+        void requestStillFrame();
+        void start();
+        void startPreview();
         ~AstroCamera();
 
     private:
