@@ -21,6 +21,7 @@ class AstroCamera {
         void requestStillFrame();
         void start();
         void startPreview();
+        void queueRequest(libcamera::Request *request);
         ~AstroCamera();
 
     private:

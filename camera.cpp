@@ -38,10 +38,7 @@ using namespace std::chrono_literals;
 #define TIMEOUT_SEC 3
 
 static std::unique_ptr<AstroCamera> astro_cam;
-static std::shared_ptr<Camera> camera;
 static EventLoop loop;
-static int _width;
-static int _height;
 
 #if USE_SSD1351_DISPLAY
 static std::unique_ptr<Display> display;
@@ -70,7 +67,7 @@ static void processRequest(Request *request)
     const Request::BufferMap &buffers = request->buffers();
     for (auto bufferPair : buffers)
     {
-        // (Unused) Stream *stream = bufferPair.first;
+        const Stream *const stream = bufferPair.first;
         FrameBuffer *buffer = bufferPair.second;
         const FrameMetadata &metadata = buffer->metadata();
 
@@ -95,8 +92,9 @@ static void processRequest(Request *request)
          * Image data can be accessed here, but the FrameBuffer
          * must be mapped by the application
          */
+        auto &config = stream->configuration();
         std::unique_ptr<Image> image =
-            Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, _width, _height);
+            Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, config.size.width, config.size.height);
 
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
         if (request->cookie() == VIEWFINDER_COOKIE)
@@ -126,7 +124,7 @@ static void processRequest(Request *request)
     request->reuse(Request::ReuseBuffers);
     if (request->cookie() == VIEWFINDER_COOKIE)
     {
-        camera->queueRequest(request);
+        astro_cam->queueRequest(request);
     }
     else
     {
@@ -172,7 +170,7 @@ int main()
 
     std::string cameraId = cameras[0]->id();
 
-    camera = cm->get(cameraId);
+    std::shared_ptr<Camera> camera = cm->get(cameraId);
 
     if (camera->acquire())
     {

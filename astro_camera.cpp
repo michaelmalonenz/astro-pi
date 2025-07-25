@@ -129,3 +129,8 @@ void AstroCamera::requestStillFrame()
         m_camera->queueRequest(request.get());
     }
 }
+
+void AstroCamera::queueRequest(Request *request)
+{
+    m_camera->queueRequest(request);
+}
