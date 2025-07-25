@@ -16,10 +16,16 @@ AstroCamera::~AstroCamera()
     m_allocator->free(m_viewfinder_config->at(0).stream());
     m_allocator->free(m_still_config->at(0).stream());
     for (auto &request : m_still_requests)
-        request.release();
+        request.reset();
+    m_still_requests.clear();
+    m_still_config.reset();
     for (auto &request : m_viewfinder_requests)
-        request.release();
-    m_allocator.release();
+        request.reset();
+    m_viewfinder_requests.clear();
+    m_viewfinder_config.reset();
+    m_allocator.reset();
+    m_camera->release();
+    m_camera.reset();
 }
 
 void AstroCamera::start()

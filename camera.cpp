@@ -202,14 +202,13 @@ int main()
     astro_cam = std::make_unique<AstroCamera>(camera, &requestComplete);
     astro_cam->start();
 
-    // loop.timeout(TIMEOUT_SEC);
+    loop.timeout(TIMEOUT_SEC);
     int ret = loop.exec();
     std::cout << "Capture ran for " << TIMEOUT_SEC << " seconds and "
               << "stopped with exit status: " << ret << std::endl;
 
-    camera->stop();
-    camera->release();
-    camera.reset();
+    astro_cam.reset();
+
     cm->stop();
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
     display->displayOff();
