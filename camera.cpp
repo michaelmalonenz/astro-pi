@@ -9,7 +9,7 @@
 #include <fcntl.h>
 
 #define USE_SSD1351_DISPLAY (0)
-#define USE_TP28017_DISPLAY (1)
+#define USE_TP28017_DISPLAY (0)
 #define WRITE_IMAGES_TO_FILE (0)
 #define SHOW_IMAGE_METADATA (0)
 
@@ -123,9 +123,9 @@ static void processRequest(Request *request)
     }
 
     /* Re-queue the Request to the camera. */
+    request->reuse(Request::ReuseBuffers);
     if (request->cookie() == VIEWFINDER_COOKIE)
     {
-        request->reuse(Request::ReuseBuffers);
         camera->queueRequest(request);
     }
     else
@@ -151,16 +151,9 @@ void deferredStillRequest()
     astro_cam->requestStillFrame();
 }
 
-static std::chrono::time_point<std::chrono::steady_clock> _last_press_time;
-static const std::chrono::milliseconds _debounce_duration{150};
 static void shutterButtonPress()
 {
-    auto duration = std::chrono::steady_clock::now() - _last_press_time;
-    if (duration > _debounce_duration)
-    {
-        _last_press_time = std::chrono::steady_clock::now();
-	loop.callLater(deferredStillRequest);
-    }
+    loop.callLater(deferredStillRequest);
 }
 
 int main()

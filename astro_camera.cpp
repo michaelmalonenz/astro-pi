@@ -12,8 +12,13 @@ AstroCamera::AstroCamera(std::shared_ptr<Camera> camera, process_request_t proce
 
 AstroCamera::~AstroCamera()
 {
+    m_camera->stop();
     m_allocator->free(m_viewfinder_config->at(0).stream());
     m_allocator->free(m_still_config->at(0).stream());
+    for (auto &request : m_still_requests)
+        request.release();
+    for (auto &request : m_viewfinder_requests)
+        request.release();
     m_allocator.release();
 }
 
@@ -29,7 +34,7 @@ void AstroCamera::start()
 
     viewFinderStreamConfig.size.width = 320;
     viewFinderStreamConfig.size.height = 240;
- 
+
     m_viewfinder_config->validate();
     std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
 
