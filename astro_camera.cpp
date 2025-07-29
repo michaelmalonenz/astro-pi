@@ -69,7 +69,9 @@ void AstroCamera::startPreview()
 
     m_camera->start();
     for (std::unique_ptr<Request> &request : m_viewfinder_requests)
+    {
         m_camera->queueRequest(request.get());
+    }
 }
 
 std::vector<std::unique_ptr<Request>> AstroCamera::allocateStream(StreamConfiguration &cfg, uint64_t cookie)

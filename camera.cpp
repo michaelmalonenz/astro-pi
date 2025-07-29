@@ -14,7 +14,7 @@
 #define WRITE_IMAGES_TO_FILE (0)
 #define SHOW_IMAGE_METADATA (0)
 
-#define BUTTON_GPIO_PIN 27
+#define BUTTON_GPIO_PIN 6
 
 #include <libcamera/libcamera.h>
 #include <wiringPi.h>

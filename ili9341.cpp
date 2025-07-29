@@ -61,10 +61,10 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
 void ILI9341::drawImage(libcamera::Span<uint8_t>& data)
 {
     uint8_t *buffer = data.data();
-    for (uint16_t y = 0; y < ILI9341_TFTHEIGHT; y += 8)
+    for (uint16_t y = 0; y < ILI9341_TFTHEIGHT; y += 4)
     {
-        this->setAddrWindow(0, y, ILI9341_TFTWIDTH, 8);
-        this->sendData(&buffer[y*ILI9341_TFTHEIGHT*BYTES_PER_PIXEL], 3072);
+        this->setAddrWindow(0, y, ILI9341_TFTWIDTH, 4);
+        this->sendData(&buffer[y*ILI9341_TFTWIDTH*BYTES_PER_PIXEL], 4*ILI9341_TFTWIDTH*BYTES_PER_PIXEL);
     }
 }
 
@@ -79,8 +79,7 @@ void ILI9341::drawPixel(int16_t x, int16_t y, uint32_t colour)
 
 void ILI9341::fillWithColour(uint32_t colour)
 {
-    uint32_t bufferSize = ILI9341_TFTHEIGHT * BYTES_PER_PIXEL * 8;
-    uint32_t numPixels = ILI9341_TFTWIDTH * ILI9341_TFTHEIGHT;
+    uint32_t bufferSize = ILI9341_TFTHEIGHT * BYTES_PER_PIXEL * 4;
     uint8_t buffer[bufferSize];
     for (uint32_t i = 0; i < bufferSize; i+=3)
     {
@@ -89,9 +88,9 @@ void ILI9341::fillWithColour(uint32_t colour)
         buffer[i+2] = (uint8_t)((colour >> 2 ) & 0xFF);
     }
 
-    for (uint8_t x = 0; x < ILI9341_TFTWIDTH; x += 8)
+    for (uint8_t x = 0; x < ILI9341_TFTWIDTH; x += 4)
     {
-        this->setAddrWindow(x, 0, 8, ILI9341_TFTHEIGHT);
+        this->setAddrWindow(x, 0, 4, ILI9341_TFTHEIGHT);
         this->sendData(buffer, bufferSize);
     }
 }
