@@ -18,11 +18,11 @@ Display::Display(const char *spi_dev, int spi_speed, int cs, int dc, int rst)
     pinMode(this->m_dc, OUTPUT);
 }
 
-void Display::sendCommand(uint8_t byte, uint8_t *argBuffer, int bufferLen)
+void Display::sendCommand(uint8_t *argBuffer, int bufferLen, uint8_t cmd)
 {
     digitalWrite(this->m_dc, LOW);
     this->setChipSelect(true);
-    this->m_spi->write(&byte, 1);
+    this->m_spi->write(&cmd, 1);
     this->setChipSelect(false);
     if (bufferLen > 0)
     {
@@ -32,36 +32,36 @@ void Display::sendCommand(uint8_t byte, uint8_t *argBuffer, int bufferLen)
 
 void Display::sendCommand(uint8_t byte)
 {
-    this->sendCommand(byte, nullptr, 0);
+    this->sendCommand(nullptr, 0, byte);
 }
 
 void Display::sendCommand(uint8_t byte, uint8_t arg1)
 {
-    this->sendCommand(byte, &arg1, 1);
+    this->sendCommand(&arg1, 1, byte);
 }
 
 void Display::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2)
 {
     uint8_t buffer[2] = {arg1, arg2};
-    this->sendCommand(byte, buffer, 2);
+    this->sendCommand(buffer, 2, byte);
 }
 
 void Display::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3)
 {
     uint8_t buffer[3] = {arg1, arg2, arg3};
-    this->sendCommand(byte, buffer, 3);
+    this->sendCommand(buffer, 3, byte);
 }
 
 void Display::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4)
 {
     uint8_t buffer[4] = {arg1, arg2, arg3, arg4};
-    this->sendCommand(byte, buffer, 4);
+    this->sendCommand(buffer, 4, byte);
 }
 
 void Display::sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4, uint8_t arg5)
 {
     uint8_t buffer[5] = {arg1, arg2, arg3, arg4, arg5};
-    this->sendCommand(byte, buffer, 5);
+    this->sendCommand(buffer, 5, byte);
 }
 
 void Display::setChipSelect(bool asserted)
@@ -78,12 +78,6 @@ void Display::sendData(uint8_t *buffer, int bufferLen)
     this->setChipSelect(true);
     this->m_spi->write(buffer, bufferLen);
     this->setChipSelect(false);
-}
-
-void Display::write16Data(uint16_t data)
-{
-    uint8_t buffer[2] = {(uint8_t)(data >> 8), (uint8_t)data};
-    sendData(buffer, 2);
 }
 
 void Display::reset()

@@ -16,13 +16,6 @@
 Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
     : Display(spi_dev, SPI_SPEED, cs, dc, rst)
 {
-    this->m_spi = std::make_unique<spidevpp::Spi>(spi_dev);
-    this->m_spi->setBitsPerWord(8);
-    this->m_spi->setSpeed(SPI_SPEED);
-
-    pinMode(this->m_cs, OUTPUT);
-    pinMode(this->m_dc, OUTPUT);
-
     // INIT DISPLAY ------------------------------------------------------------
     this->reset();
 
@@ -60,11 +53,11 @@ Ssd1351::Ssd1351(const char *spi_dev, int cs, int dc, int rst)
         0x96, 0x9B, 0xA0, 0xA5,
         0xAA, 0xAF, 0xB4,
     };
-    this->sendCommand(SSD1351_CMD_SETGRAY, gamma_values, 63);
+    this->sendCommand(gamma_values, 63, SSD1351_CMD_SETGRAY);
     this->sendCommand(SSD1351_CMD_PRECHARGE, 0x32);
 
     uint8_t display_enhance_values[3] = {0xA4, 0x00, 0x00};
-    this->sendCommand(SSD1351_CMD_DISPLAYENHANCE, display_enhance_values, 3);
+    this->sendCommand(display_enhance_values, 3, SSD1351_CMD_DISPLAYENHANCE);
     this->sendCommand(SSD1351_CMD_PRECHARGELEVEL, 0x17);
     this->sendCommand(SSD1351_CMD_PRECHARGE2, 0x01);
     this->sendCommand(SSD1351_CMD_VCOMH, 0x05);

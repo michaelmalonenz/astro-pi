@@ -86,7 +86,7 @@
 
 class ILI9341 : public Display {
     public:
-        ILI9341(const char *spi_dev, int cs, int dc, int rst = -1);
+        ILI9341(const char *spi_dev, int cs, int dc, int rst = -1, int backlight = 18);
         void drawImage(libcamera::Span<uint8_t>& data) override;
         void drawPixel(int16_t x, int16_t y, uint32_t color) override;
         void fillWithColour(uint32_t colour) override;

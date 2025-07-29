@@ -6,20 +6,21 @@
 #include "ili9341.hpp"
 
 
-#define SPI_SPEED 8000000
+#define SPI_SPEED 64000000
 
 #define BYTES_PER_PIXEL 3
 
 
-ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst)
+ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     : Display(spi_dev, SPI_SPEED, cs, dc, rst)
 {
-    m_spi = std::make_unique<spidevpp::Spi>(spi_dev);
-    m_spi->setBitsPerWord(8);
-    m_spi->setSpeed(SPI_SPEED);
-
-    pinMode(m_cs, OUTPUT);
-    pinMode(m_dc, OUTPUT);
+    if (m_rst != -1)
+    {
+        pinMode(m_rst, OUTPUT);
+        digitalWrite(m_rst, HIGH);
+    }
+    pinMode(backlight, OUTPUT);
+    digitalWrite(backlight, LOW); // testing
 
     // INIT DISPLAY ------------------------------------------------------------
     reset();
@@ -45,11 +46,11 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst)
 
     uint8_t buffer[15] = {0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, // Set Positive Gamma
     0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00};
-    sendCommand(ILI9341_GMCTRP1, buffer, 15);
+    sendCommand(buffer, 15, ILI9341_GMCTRP1);
 
     uint8_t buffer2[15] = {0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, // Set Negative Gamma
     0x31, 0xC1, 0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F};
-    sendCommand(ILI9341_GMCTRN1, buffer2, 15);
+    sendCommand(buffer2, 15, ILI9341_GMCTRN1);
 
     sendCommand(ILI9341_SLPOUT);                // Exit Sleep
     sendCommand(ILI9341_DISPON);                // Display on
@@ -60,7 +61,7 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst)
 void ILI9341::drawImage(libcamera::Span<uint8_t>& data)
 {
     uint8_t *buffer = data.data();
-    for (uint8_t y = 0; y < ILI9341_TFTHEIGHT; y += 8)
+    for (uint16_t y = 0; y < ILI9341_TFTHEIGHT; y += 8)
     {
         this->setAddrWindow(0, y, ILI9341_TFTWIDTH, 8);
         this->sendData(&buffer[y*ILI9341_TFTHEIGHT*BYTES_PER_PIXEL], 3072);
@@ -78,9 +79,10 @@ void ILI9341::drawPixel(int16_t x, int16_t y, uint32_t colour)
 
 void ILI9341::fillWithColour(uint32_t colour)
 {
+    uint32_t bufferSize = ILI9341_TFTHEIGHT * BYTES_PER_PIXEL * 8;
     uint32_t numPixels = ILI9341_TFTWIDTH * ILI9341_TFTHEIGHT;
-    uint8_t buffer[3072];
-    for (uint32_t i = 0; i < 3072; i+=3)
+    uint8_t buffer[bufferSize];
+    for (uint32_t i = 0; i < bufferSize; i+=3)
     {
         buffer[i]   = (uint8_t)((colour >> 18) & 0xFF);
         buffer[i+1] = (uint8_t)((colour >> 10) & 0xFF);
@@ -90,7 +92,7 @@ void ILI9341::fillWithColour(uint32_t colour)
     for (uint8_t x = 0; x < ILI9341_TFTWIDTH; x += 8)
     {
         this->setAddrWindow(x, 0, 8, ILI9341_TFTHEIGHT);
-        this->sendData(buffer, 3072);
+        this->sendData(buffer, bufferSize);
     }
 }
 
@@ -120,16 +122,14 @@ void ILI9341::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
 
     uint16_t x2 = (x1 + w - 1), y2 = (y1 + h - 1);
     if (x1 != old_x1 || x2 != old_x2) {
-        sendCommand(ILI9341_CASET); // Column address set
-        write16Data(x1);
-        write16Data(x2);
+        uint8_t xargs[4] = { (uint8_t)(x1 >> 8), (uint8_t)x1, (uint8_t)(x2 >> 8), (uint8_t)x2};
+        sendCommand(xargs, 4, ILI9341_CASET); // Column address set
         old_x1 = x1;
         old_x2 = x2;
     }
     if (y1 != old_y1 || y2 != old_y2) {
-        sendCommand(ILI9341_PASET); // Row address set
-        write16Data(y1);
-        write16Data(y2);
+        uint8_t yargs[4] = { (uint8_t)(y1 >> 8), (uint8_t)y1, (uint8_t)(y2 >> 8), (uint8_t)y2};
+        sendCommand(yargs, 4, ILI9341_PASET); // Row address set
         old_y1 = y1;
         old_y2 = y2;
     }
