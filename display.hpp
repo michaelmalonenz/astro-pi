@@ -26,6 +26,7 @@ class Display {
         void sendCommand(uint8_t byte, uint8_t arg1, uint8_t arg2, uint8_t arg3, uint8_t arg4, uint8_t arg5);
         void sendData(uint8_t *buffer, int bufferLen);
         void setChipSelect(bool asserted);
+        void write16Data(uint16_t data);
         virtual void setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h) = 0;
         void reset();
 };

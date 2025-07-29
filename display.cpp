@@ -80,6 +80,12 @@ void Display::sendData(uint8_t *buffer, int bufferLen)
     this->setChipSelect(false);
 }
 
+void Display::write16Data(uint16_t data)
+{
+    uint8_t buffer[2] = {(uint8_t)(data >> 8), (uint8_t)data};
+    sendData(buffer, 2);
+}
+
 void Display::reset()
 {
     if (this->m_rst != -1)

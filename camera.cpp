@@ -10,6 +10,7 @@
 
 #define USE_SSD1351_DISPLAY (0)
 #define USE_TP28017_DISPLAY (0)
+#define USE_ILI9341_DISPLAY (0)
 #define WRITE_IMAGES_TO_FILE (0)
 #define SHOW_IMAGE_METADATA (0)
 
@@ -26,6 +27,8 @@
 #include "ssd1351.hpp"
 #elif USE_TP28017_DISPLAY
 #include "tp28017.hpp"
+#elif USE_ILI9341_DISPLAY
+#include "ili9341.hpp"
 #endif
 
 #if WRITE_IMAGES_TO_SERVER
@@ -40,7 +43,7 @@ using namespace std::chrono_literals;
 static std::unique_ptr<AstroCamera> astro_cam;
 static EventLoop loop;
 
-#if USE_SSD1351_DISPLAY
+#if USE_SSD1351_DISPLAY || USE_ILI9341_DISPLAY
 static std::unique_ptr<Display> display;
 #endif
 #if USE_TP28017_DISPLAY
@@ -96,7 +99,7 @@ static void processRequest(Request *request)
         std::unique_ptr<Image> image =
             Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, config.size.width, config.size.height);
 
-#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
+#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY || USE_ILI9341_DISPLAY
         if (request->cookie() == VIEWFINDER_COOKIE)
         {
             auto rgbData = image->dataAsRGB888();
@@ -189,11 +192,14 @@ int main()
 #if USE_SSD1351_DISPLAY
     //                                                   cs, dc, rst
     display = std::make_unique<Ssd1351>("/dev/spidev0.0", 8,  5,  6);
+#elif USE_ILI9341_DISPLAY
+    //                                                   cs, dc, rst
+    display = std::make_unique<ILI9341>("/dev/spidev0.0", 8, 25, 27);
 #elif USE_TP28017_DISPLAY
     //                                  cs, rs, rd, wr, rst)
     display = std::make_unique<Tp28017>(19, 16, 20, 26,   5);
 #endif
-#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
+#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY || USE_ILI9341_DISPLAY
     display->fillWithColour(0xff0000);
 #endif
 
@@ -208,7 +214,7 @@ int main()
     astro_cam.reset();
 
     cm->stop();
-#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY
+#if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY || USE_ILI9341_DISPLAY
     display->displayOff();
 #endif
 

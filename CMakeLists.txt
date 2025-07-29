@@ -29,6 +29,7 @@ add_executable(astro-pi
     camera.cpp
     event_loop.cpp
     image.cpp
+    ili9341.cpp
     ssd1351.cpp
     tp28017.cpp
     display.cpp
