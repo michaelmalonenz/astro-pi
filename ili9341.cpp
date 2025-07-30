@@ -15,11 +15,6 @@
 ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     : Display(spi_dev, SPI_SPEED, cs, dc, rst)
 {
-    if (m_rst != -1)
-    {
-        pinMode(m_rst, OUTPUT);
-        digitalWrite(m_rst, HIGH);
-    }
     pinMode(backlight, OUTPUT);
     digitalWrite(backlight, LOW); // testing
 

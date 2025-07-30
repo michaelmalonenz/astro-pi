@@ -3,8 +3,6 @@
 #include <string.h>
 #include <wiringPi.h>
 #include <iostream>
-#include <thread>
-#include <chrono>
 #include "display.hpp"
 
 Display::Display(const char *spi_dev, int spi_speed, int cs, int dc, int rst)
@@ -16,6 +14,11 @@ Display::Display(const char *spi_dev, int spi_speed, int cs, int dc, int rst)
 
     pinMode(this->m_cs, OUTPUT);
     pinMode(this->m_dc, OUTPUT);
+    if (m_rst != -1)
+    {
+        pinMode(m_rst, OUTPUT);
+        pullUpDnControl(m_rst, PUD_UP);
+    }
 }
 
 void Display::sendCommand(uint8_t *argBuffer, int bufferLen, uint8_t cmd)
@@ -85,9 +88,9 @@ void Display::reset()
     if (this->m_rst != -1)
     {
         digitalWrite(this->m_rst, LOW);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        delay(50);
         digitalWrite(this->m_rst, HIGH);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        delay(50);
     }
 }
 
