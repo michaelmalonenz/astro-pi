@@ -8,7 +8,8 @@
 
 #define SPI_SPEED 64000000
 
-#define BYTES_PER_PIXEL 3
+#define BYTES_PER_PIXEL 2
+#define BUFFER_STRIDE 4
 
 
 ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
@@ -68,10 +69,10 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
 void ILI9341::drawImage(libcamera::Span<uint8_t>& data)
 {
     uint8_t *buffer = data.data();
-    for (uint16_t y = 0; y < ILI9341_TFTHEIGHT; y += 4)
+    for (uint16_t y = 0; y < ILI9341_TFTHEIGHT; y += BUFFER_STRIDE)
     {
-        this->setAddrWindow(0, y, ILI9341_TFTWIDTH, 4);
-        this->sendData(&buffer[y*ILI9341_TFTWIDTH*BYTES_PER_PIXEL], 4*ILI9341_TFTWIDTH*BYTES_PER_PIXEL);
+        this->setAddrWindow(0, y, ILI9341_TFTWIDTH, BUFFER_STRIDE);
+        this->sendData(&buffer[y*ILI9341_TFTWIDTH*BYTES_PER_PIXEL], BUFFER_STRIDE*ILI9341_TFTWIDTH*BYTES_PER_PIXEL);
     }
 }
 
@@ -86,18 +87,21 @@ void ILI9341::drawPixel(int16_t x, int16_t y, uint32_t colour)
 
 void ILI9341::fillWithColour(uint32_t colour)
 {
-    uint32_t bufferSize = ILI9341_TFTHEIGHT * BYTES_PER_PIXEL * 4;
+    uint32_t bufferSize = ILI9341_TFTHEIGHT * BYTES_PER_PIXEL * BUFFER_STRIDE;
     uint8_t buffer[bufferSize];
-    for (uint32_t i = 0; i < bufferSize; i+=3)
+    for (uint32_t i = 0; i < bufferSize; i+=BYTES_PER_PIXEL)
     {
-        buffer[i]   = (uint8_t)((colour >> 18) & 0xFF);
-        buffer[i+1] = (uint8_t)((colour >> 10) & 0xFF);
-        buffer[i+2] = (uint8_t)((colour >> 2 ) & 0xFF);
+        uint16_t rgb565 = (((colour&0xf80000)>>8)|((colour&0xfc00)>>5)|((colour&0xf8)>>3));
+        buffer[i] = (uint8_t)(rgb565 >> 8);
+        buffer[i+1] = (uint8_t)(rgb565);
+        // buffer[i]   = (uint8_t)((colour >> 18) & 0xFF);
+        // buffer[i+1] = (uint8_t)((colour >> 10) & 0xFF);
+        // buffer[i+2] = (uint8_t)((colour >> 2 ) & 0xFF);
     }
 
-    for (uint8_t x = 0; x < ILI9341_TFTWIDTH; x += 4)
+    for (uint8_t x = 0; x < ILI9341_TFTWIDTH; x += BUFFER_STRIDE)
     {
-        this->setAddrWindow(x, 0, 4, ILI9341_TFTHEIGHT);
+        this->setAddrWindow(x, 0, BUFFER_STRIDE, ILI9341_TFTHEIGHT);
         this->sendData(buffer, bufferSize);
     }
 }
