@@ -25,6 +25,9 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     // INIT DISPLAY ------------------------------------------------------------
     reset();
 
+    sendCommand(ILI9341_SWRESET);
+    delay(50);
+    sendCommand(ILI9341_DISPOFF);
     sendCommand(0xEF, 0x03, 0x80, 0x02);
     sendCommand(0xCF, 0x00, 0xC1, 0x30);
     sendCommand(0xED, 0x64, 0x03, 0x12, 0x81);
@@ -34,15 +37,17 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     sendCommand(0xEA, 0x00, 0x00);
     sendCommand(ILI9341_PWCTR1  , 0x23);             // Power control VRH[5:0]
     sendCommand(ILI9341_PWCTR2  , 0x10);             // Power control SAP[2:0];BT[3:0]
-    sendCommand(ILI9341_VMCTR1  , 0x3e, 0x28);       // VCM control
-    sendCommand(ILI9341_VMCTR2  , 0x86);             // VCM control2
+    sendCommand(ILI9341_VMCTR1  , 0x3e, 0x28);       // VCM control                         **** 0x2B, 0x2B
+    sendCommand(ILI9341_VMCTR2  , 0x86);             // VCM control2                        **** 0xC0
     sendCommand(ILI9341_MADCTL  , 0x48);             // Memory Access Control
     sendCommand(ILI9341_VSCRSADD, 0x00);             // Vertical scroll zero
     sendCommand(ILI9341_PIXFMT  , 0x55);             // 18 bits per pixel
-    sendCommand(ILI9341_FRMCTR1 , (uint8_t)0x00, 0x18);
+    sendCommand(ILI9341_FRMCTR1 , (uint8_t)0x00, 0x18);                                  // **** 0x00, 0x1B
     sendCommand(ILI9341_DFUNCTR , 0x08, 0x82, 0x27); // Display Function Control
     sendCommand(0xF2, 0x00);                         // 3Gamma Function Disable
     sendCommand(ILI9341_GAMMASET, 0x01);             // Gamma curve selected
+
+    sendCommand(ILI9341_ENTMOD, 0x07);               // Entry Mode Set
 
     uint8_t buffer[15] = {0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, // Set Positive Gamma
     0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00};
@@ -53,7 +58,9 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     sendCommand(buffer2, 15, ILI9341_GMCTRN1);
 
     sendCommand(ILI9341_SLPOUT);                // Exit Sleep
+    delay(150);
     sendCommand(ILI9341_DISPON);                // Display on
+    delay(200);
 
     fillWithColour(0x0); // black / clear the screen
 }
