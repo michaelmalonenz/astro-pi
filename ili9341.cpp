@@ -19,6 +19,8 @@
 #define MADCTL_BGR 0x08 ///< Blue-Green-Red pixel order
 #define MADCTL_MH 0x04  ///< LCD refresh right to left
 
+#define MAD_VALUE (MADCTL_MX | MADCTL_BGR)
+
 
 ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     : Display(spi_dev, SPI_SPEED, cs, dc, rst)
@@ -43,10 +45,10 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     sendCommand(ILI9341_PWCTR2  , 0x10);             // Power control SAP[2:0];BT[3:0]
     sendCommand(ILI9341_VMCTR1  , 0x3e, 0x28);       // VCM control
     sendCommand(ILI9341_VMCTR2  , 0x86);             // VCM control2
-    sendCommand(ILI9341_MADCTL  , 0x48);             // Memory Access Control
+    sendCommand(ILI9341_MADCTL  , MAD_VALUE);        // Memory Access Control
     sendCommand(ILI9341_VSCRSADD, 0x00);             // Vertical scroll zero
     sendCommand(ILI9341_PIXFMT  , 0x55);             // 16 bits per pixel
-    sendCommand(ILI9341_FRMCTR1 , (uint8_t)0x00, 0x18);
+    sendCommand(ILI9341_FRMCTR1 , 0x00, 0x18);
     sendCommand(ILI9341_DFUNCTR , 0x08, 0x82, 0x27); // Display Function Control
     sendCommand(0xF2, 0x00);                         // 3Gamma Function Disable
     sendCommand(ILI9341_GAMMASET, 0x01);             // Gamma curve selected
@@ -90,7 +92,7 @@ void ILI9341::drawPixel(int16_t x, int16_t y, uint32_t colour)
 
 void ILI9341::fillWithColour(uint32_t colour)
 {
-    uint32_t bufferSize = ILI9341_TFTHEIGHT * BYTES_PER_PIXEL * BUFFER_STRIDE;
+    uint32_t bufferSize = ILI9341_TFTWIDTH * BYTES_PER_PIXEL * BUFFER_STRIDE;
     uint8_t buffer[bufferSize];
     for (uint32_t i = 0; i < bufferSize; i+=BYTES_PER_PIXEL)
     {
@@ -102,9 +104,9 @@ void ILI9341::fillWithColour(uint32_t colour)
         // buffer[i+2] = (uint8_t)((colour >> 2 ) & 0xFF);
     }
 
-    for (uint8_t x = 0; x < ILI9341_TFTWIDTH; x += BUFFER_STRIDE)
+    for (uint8_t y = 0; y < ILI9341_TFTHEIGHT; y += BUFFER_STRIDE)
     {
-        this->setAddrWindow(x, 0, BUFFER_STRIDE, ILI9341_TFTHEIGHT);
+        this->setAddrWindow(0, y, BUFFER_STRIDE, ILI9341_TFTWIDTH);
         this->sendData(buffer, bufferSize);
     }
 }
