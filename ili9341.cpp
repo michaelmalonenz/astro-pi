@@ -11,12 +11,20 @@
 #define BYTES_PER_PIXEL 2
 #define BUFFER_STRIDE 4
 
+#define MADCTL_MY 0x80  ///< Bottom to top
+#define MADCTL_MX 0x40  ///< Right to left
+#define MADCTL_MV 0x20  ///< Reverse Mode
+#define MADCTL_ML 0x10  ///< LCD refresh Bottom to top
+#define MADCTL_RGB 0x00 ///< Red-Green-Blue pixel order
+#define MADCTL_BGR 0x08 ///< Blue-Green-Red pixel order
+#define MADCTL_MH 0x04  ///< LCD refresh right to left
+
 
 ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     : Display(spi_dev, SPI_SPEED, cs, dc, rst)
 {
     pinMode(backlight, OUTPUT);
-    digitalWrite(backlight, LOW); // testing
+    digitalWrite(backlight, HIGH);
 
     // INIT DISPLAY ------------------------------------------------------------
     reset();
@@ -37,7 +45,7 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     sendCommand(ILI9341_VMCTR2  , 0x86);             // VCM control2                        **** 0xC0
     sendCommand(ILI9341_MADCTL  , 0x48);             // Memory Access Control
     sendCommand(ILI9341_VSCRSADD, 0x00);             // Vertical scroll zero
-    sendCommand(ILI9341_PIXFMT  , 0x55);             // 18 bits per pixel
+    sendCommand(ILI9341_PIXFMT  , 0x55);             // 16 bits per pixel
     sendCommand(ILI9341_FRMCTR1 , (uint8_t)0x00, 0x18);                                  // **** 0x00, 0x1B
     sendCommand(ILI9341_DFUNCTR , 0x08, 0x82, 0x27); // Display Function Control
     sendCommand(0xF2, 0x00);                         // 3Gamma Function Disable

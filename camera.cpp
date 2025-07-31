@@ -10,7 +10,7 @@
 
 #define USE_SSD1351_DISPLAY (0)
 #define USE_TP28017_DISPLAY (0)
-#define USE_ILI9341_DISPLAY (0)
+#define USE_ILI9341_DISPLAY (defined(__ARM_ARCH))
 #define WRITE_IMAGES_TO_FILE (0)
 #define SHOW_IMAGE_METADATA (0)
 
@@ -102,7 +102,7 @@ static void processRequest(Request *request)
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY || USE_ILI9341_DISPLAY
         if (request->cookie() == VIEWFINDER_COOKIE)
         {
-            auto rgbData = image->dataAsRGB888();
+            auto rgbData = image->dataAsRGB565();
             auto data = libcamera::Span(rgbData.data(), rgbData.size());
             const unsigned int bytesused = metadata.planes()[0].bytesused;
             const unsigned int length = std::min<unsigned int>(bytesused, data.size());
