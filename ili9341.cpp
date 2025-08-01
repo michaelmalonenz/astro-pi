@@ -19,7 +19,7 @@
 #define MADCTL_BGR 0x08 ///< Blue-Green-Red pixel order
 #define MADCTL_MH 0x04  ///< LCD refresh right to left
 
-#define MAD_VALUE (MADCTL_MX | MADCTL_BGR)
+#define MAD_VALUE (MADCTL_MV | MADCTL_BGR)
 
 
 ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
@@ -99,14 +99,14 @@ void ILI9341::fillWithColour(uint32_t colour)
         uint16_t rgb565 = (((colour&0xf80000)>>8)|((colour&0xfc00)>>5)|((colour&0xf8)>>3));
         buffer[i] = (uint8_t)(rgb565 >> 8);
         buffer[i+1] = (uint8_t)(rgb565);
-        // buffer[i]   = (uint8_t)((colour >> 18) & 0xFF);
-        // buffer[i+1] = (uint8_t)((colour >> 10) & 0xFF);
-        // buffer[i+2] = (uint8_t)((colour >> 2 ) & 0xFF);
+        // buffer[i]   = (uint8_t)((colour >> 16) & 0xFF);
+        // buffer[i+1] = (uint8_t)((colour >> 8)  & 0xFF);
+        // buffer[i+2] = (uint8_t)((colour >> 0)  & 0xFF);
     }
 
     for (uint8_t y = 0; y < ILI9341_TFTHEIGHT; y += BUFFER_STRIDE)
     {
-        this->setAddrWindow(0, y, BUFFER_STRIDE, ILI9341_TFTWIDTH);
+        this->setAddrWindow(0, y, ILI9341_TFTWIDTH, BUFFER_STRIDE);
         this->sendData(buffer, bufferSize);
     }
 }
