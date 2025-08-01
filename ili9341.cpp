@@ -19,7 +19,7 @@
 #define MADCTL_BGR 0x08 ///< Blue-Green-Red pixel order
 #define MADCTL_MH 0x04  ///< LCD refresh right to left
 
-#define MAD_VALUE (MADCTL_MV | MADCTL_BGR)
+#define MAD_VALUE (MADCTL_MV | MADCTL_RGB)
 
 
 ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
