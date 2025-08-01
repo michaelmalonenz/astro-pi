@@ -8,7 +8,7 @@
 
 #define SPI_SPEED 64000000
 
-#define BYTES_PER_PIXEL 2
+#define BYTES_PER_PIXEL 3
 #define BUFFER_STRIDE 4
 
 #define MADCTL_MY 0x80  ///< Bottom to top
@@ -47,7 +47,7 @@ ILI9341::ILI9341(const char *spi_dev, int cs, int dc, int rst, int backlight)
     sendCommand(ILI9341_VMCTR2  , 0x86);             // VCM control2
     sendCommand(ILI9341_MADCTL  , MAD_VALUE);        // Memory Access Control
     sendCommand(ILI9341_VSCRSADD, 0x00);             // Vertical scroll zero
-    sendCommand(ILI9341_PIXFMT  , 0x55);             // 16 bits per pixel
+    sendCommand(ILI9341_PIXFMT  , 0x66);             // 16 bits per pixel
     sendCommand(ILI9341_FRMCTR1 , 0x00, 0x18);
     sendCommand(ILI9341_DFUNCTR , 0x08, 0x82, 0x27); // Display Function Control
     sendCommand(0xF2, 0x00);                         // 3Gamma Function Disable

@@ -146,13 +146,26 @@ std::vector<uint8_t> Image::dataAsRGB888()
     std::vector<uint8_t> result;
     auto plane = planes_[0];
     for (int i = 0; i < plane.size(); i+=4) {
-        result.push_back((uint8_t)plane[i+2] >> 2 & 0x3F);
-        result.push_back((uint8_t)plane[i+1] >> 2 & 0x3F);
-        result.push_back((uint8_t)plane[i]   >> 2 & 0x3F);
-
+        result.push_back((uint8_t)plane[i+2] >> 2 & 0x3F); // SSD1351 Format
+        result.push_back((uint8_t)plane[i+1] >> 2 & 0x3F); // SSD1351 Format
+        result.push_back((uint8_t)plane[i]   >> 2 & 0x3F); // SSD1351 Format
     }
     return result;
 }
+
+// Drops the 'X' component
+std::vector<uint8_t> Image::dataAsBGR888()
+{
+    std::vector<uint8_t> result;
+    auto plane = planes_[0];
+    for (int i = 0; i < plane.size(); i+=4) {
+        result.push_back((uint8_t)plane[i]);
+        result.push_back((uint8_t)plane[i+1]);
+        result.push_back((uint8_t)plane[i+2]);
+    }
+    return result;
+}
+
 
 static uint8_t color565_to_r(uint16_t color) {
     return ((color & 0xF800) >> 8);  // transform to rrrrrxxx
