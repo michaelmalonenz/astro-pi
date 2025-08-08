@@ -13,15 +13,15 @@ AstroCamera::AstroCamera(std::shared_ptr<Camera> camera, process_request_t proce
 AstroCamera::~AstroCamera()
 {
     m_camera->stop();
-    m_allocator->free(m_viewfinder_config->at(0).stream());
-    m_allocator->free(m_viewfinder_config->at(1).stream());
+    for (auto iter = m_config->begin(); iter != m_config->end(); iter++)
+        m_allocator->free(iter->stream());
     for (auto &request : m_still_requests)
         request.reset();
     m_still_requests.clear();
     for (auto &request : m_viewfinder_requests)
         request.reset();
     m_viewfinder_requests.clear();
-    m_viewfinder_config.reset();
+    m_config.reset();
     m_allocator.reset();
     m_camera->release();
     m_camera.reset();
@@ -29,26 +29,26 @@ AstroCamera::~AstroCamera()
 
 void AstroCamera::start()
 {
-    m_viewfinder_config = m_camera->generateConfiguration({StreamRole::Viewfinder, StreamRole::StillCapture});
-    if (m_viewfinder_config == NULL)
+    m_config = m_camera->generateConfiguration({StreamRole::Viewfinder, StreamRole::StillCapture});
+    if (m_config == NULL)
     {
         throw std::runtime_error{"Unable to generate configuration"};
     }
-    StreamConfiguration &viewFinderStreamConfig = m_viewfinder_config->at(0);
+    StreamConfiguration &viewFinderStreamConfig = m_config->at(0);
     std::cout << "Default ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
 
     viewFinderStreamConfig.pixelFormat = libcamera::formats::RGB888;
     viewFinderStreamConfig.size.width = m_display_width;
     viewFinderStreamConfig.size.height = m_display_height;
 
-    m_viewfinder_config->validate();
+    m_config->validate();
     std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
-    if (m_camera->configure(m_viewfinder_config.get()) < 0)
+    if (m_camera->configure(m_config.get()) < 0)
     {
         throw std::runtime_error("Failed to configure camera");
     }
-    m_viewfinder_requests = allocateStream(m_viewfinder_config->at(0), VIEWFINDER_COOKIE);
-    m_still_requests = allocateStream(m_viewfinder_config->at(1), STILL_CAPTURE_COOKIE);
+    m_viewfinder_requests = allocateStream(m_config->at(0), VIEWFINDER_COOKIE);
+    m_still_requests = allocateStream(m_config->at(1), STILL_CAPTURE_COOKIE);
     m_camera->start();
     startPreview();
 }

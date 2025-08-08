@@ -16,6 +16,31 @@
 #include <libcamera/base/span.h>
 
 #include <libcamera/framebuffer.h>
+#include <libcamera/stream.h>
+
+enum PixelColourFormat {
+    XRGB8888,
+    XBGR8888,
+    RGBX8888,
+    BGRX8888,
+    YUYV,
+    YVYU,
+    UYVY,
+    VYUY,
+    AVUY8888,
+    XVUY8888,
+    YUV420,
+    YVU420,
+    YUV422,
+    YVU422,
+    YUV444,
+    YVU444,
+    MJPEG,
+    SRGGB12,
+    SGRBG12,
+    SGBRG12,
+    SBGGR12,
+};
 
 class Image
 {
@@ -27,8 +52,8 @@ public:
         ReadWrite = ReadOnly | WriteOnly,
     };
 
-    static std::unique_ptr<Image> fromFrameBuffer(const libcamera::FrameBuffer *buffer,
-                                                  MapMode mode, int width, int height);
+    static std::unique_ptr<Image> fromFrameBuffer(
+        const libcamera::FrameBuffer *buffer, MapMode mode, const libcamera::StreamConfiguration& config);
 
     ~Image();
 
@@ -50,6 +75,7 @@ private:
 
     std::vector<libcamera::Span<uint8_t>> maps_;
     std::vector<libcamera::Span<uint8_t>> planes_;
+    PixelColourFormat m_format;
 };
 
 namespace libcamera

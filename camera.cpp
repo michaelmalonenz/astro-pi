@@ -98,8 +98,7 @@ static void processRequest(Request *request)
          * must be mapped by the application
          */
         auto &config = stream->configuration();
-        std::unique_ptr<Image> image =
-            Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, config.size.width, config.size.height);
+        std::unique_ptr<Image> image = Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, config);
 
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY || USE_ILI9341_DISPLAY
         if (request->cookie() == VIEWFINDER_COOKIE)
@@ -107,8 +106,6 @@ static void processRequest(Request *request)
             // auto rgbData = image->dataAsRGB565();
             auto rgbData = image->dataAsBGR888();
             auto data = libcamera::Span(rgbData.data(), rgbData.size());
-            const unsigned int bytesused = metadata.planes()[0].bytesused;
-            const unsigned int length = std::min<unsigned int>(bytesused, data.size());
             display->drawImage(data);
         }
 #endif

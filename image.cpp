@@ -23,13 +23,37 @@
 #define IMAGE_COLOUR_SPACE_BYTES 3
 #define JPEG_IMAGE_QUALITY 90
 
+#define CLIP(X) ( (X) > 255 ? 255 : (X) < 0 ? 0 : X)
+
+// RGB -> YUV
+#define RGB2Y(R, G, B) CLIP(( (  66 * (R) + 129 * (G) +  25 * (B) + 128) >> 8) +  16)
+#define RGB2U(R, G, B) CLIP(( ( -38 * (R) -  74 * (G) + 112 * (B) + 128) >> 8) + 128)
+#define RGB2V(R, G, B) CLIP(( ( 112 * (R) -  94 * (G) -  18 * (B) + 128) >> 8) + 128)
+
+// YUV -> RGB
+#define C(Y) ( (Y) - 16  )
+#define D(U) ( (U) - 128 )
+#define E(V) ( (V) - 128 )
+
+#define YUV2R(Y, U, V) CLIP(( 298 * C(Y)              + 409 * E(V) + 128) >> 8)
+#define YUV2G(Y, U, V) CLIP(( 298 * C(Y) - 100 * D(U) - 208 * E(V) + 128) >> 8)
+#define YUV2B(Y, U, V) CLIP(( 298 * C(Y) + 516 * D(U)              + 128) >> 8)
+
 using namespace libcamera;
 
-std::unique_ptr<Image> Image::fromFrameBuffer(const FrameBuffer *buffer, MapMode mode, int width, int height)
+static PixelColourFormat getPixelFormat(const libcamera::PixelFormat& format)
 {
+    return PixelColourFormat::XRGB8888;
+}
+
+
+std::unique_ptr<Image> Image::fromFrameBuffer(const FrameBuffer *buffer, MapMode mode, const libcamera::StreamConfiguration& config)
+{
+    //  config.pixelFormat
     std::unique_ptr<Image> image{new Image()};
-    image->m_width = width;
-    image->m_height = height;
+    image->m_width = config.size.width;
+    image->m_height = config.size.height;
+    image->m_format = getPixelFormat(config.pixelFormat);
 
     assert(!buffer->planes().empty());
 

@@ -11,8 +11,8 @@ class AstroCamera {
 
     std::shared_ptr<libcamera::Camera> m_camera;
     std::unique_ptr<libcamera::FrameBufferAllocator> m_allocator;
+    std::unique_ptr<libcamera::CameraConfiguration> m_config;
     std::vector<std::unique_ptr<libcamera::Request>> m_viewfinder_requests;
-    std::unique_ptr<libcamera::CameraConfiguration> m_viewfinder_config;
     std::vector<std::unique_ptr<libcamera::Request>> m_still_requests;
     process_request_t m_request_processor;
     uint16_t m_display_width;
