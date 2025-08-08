@@ -20,6 +20,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include <libcamera/formats.h>
+
 #define IMAGE_COLOUR_SPACE_BYTES 3
 #define JPEG_IMAGE_QUALITY 90
 
@@ -43,6 +45,29 @@ using namespace libcamera;
 
 static PixelColourFormat getPixelFormat(const libcamera::PixelFormat& format)
 {
+    switch (format)
+    {
+        case libcamera::formats::XBGR8888: return PixelColourFormat::XBGR8888;
+        case libcamera::formats::RGBX8888: return PixelColourFormat::RGBX8888;
+        case libcamera::formats::BGRX8888: return PixelColourFormat::BGRX8888;
+        case libcamera::formats::YUYV: return PixelColourFormat::YUYV;
+        case libcamera::formats::YVYU: return PixelColourFormat::YVYU;
+        case libcamera::formats::UYVY: return PixelColourFormat::UYVY;
+        case libcamera::formats::VYUY: return PixelColourFormat::VYUY;
+        case libcamera::formats::AVUY8888: return PixelColourFormat::AVUY8888;
+        case libcamera::formats::XVUY8888: return PixelColourFormat::XVUY8888;
+        case libcamera::formats::YUV420: return PixelColourFormat::YUV420;
+        case libcamera::formats::YVU420: return PixelColourFormat::YVU420;
+        case libcamera::formats::YUV422: return PixelColourFormat::YUV422;
+        case libcamera::formats::YVU422: return PixelColourFormat::YVU422;
+        case libcamera::formats::YUV444: return PixelColourFormat::YUV444;
+        case libcamera::formats::YVU444: return PixelColourFormat::YVU444;
+        case libcamera::formats::MJPEG: return PixelColourFormat::MJPEG;
+        case libcamera::formats::SRGGB12: return PixelColourFormat::SRGGB12;
+        case libcamera::formats::SGRBG12: return PixelColourFormat::SGRBG12;
+        case libcamera::formats::SGBRG12: return PixelColourFormat::SGBRG12;
+        case libcamera::formats::SBGGR12: return PixelColourFormat::SBGGR12;
+    }
     return PixelColourFormat::XRGB8888;
 }
 
