@@ -182,13 +182,12 @@ void Image::writeToFile(std::string filename)
     auto plane = planes_[0];
     std::vector<uint8_t> result;
     for (int i = 0; i < plane.size(); i+=4) {
-        uint16_t red = plane[i+2];
-        uint16_t green = plane[i+1];
-        uint16_t blue = plane[i];
-        uint16_t rgb = ((red & 0xF8) << 8) | ((green & 0xFC) << 3) | ((blue >> 3) & 0x1F);
-        result.push_back(color565_to_r(rgb));
-        result.push_back(color565_to_g(rgb));
-        result.push_back(color565_to_b(rgb));
+        uint8_t red = plane[i+2];
+        uint8_t green = plane[i+1];
+        uint8_t blue = plane[i];
+        result.push_back(red);
+        result.push_back(green);
+        result.push_back(blue);
     }
 
     stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, result.data(), JPEG_IMAGE_QUALITY);
