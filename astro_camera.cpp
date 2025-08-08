@@ -37,10 +37,7 @@ void AstroCamera::start()
     StreamConfiguration &viewFinderStreamConfig = m_viewfinder_config->at(0);
     std::cout << "Default ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
 
-    // viewFinderStreamConfig.size.width = 128;
-    // viewFinderStreamConfig.size.height = 128;
     viewFinderStreamConfig.pixelFormat = libcamera::formats::RGB888;
-
     viewFinderStreamConfig.size.width = 320;
     viewFinderStreamConfig.size.height = 240;
 
@@ -87,8 +84,8 @@ std::vector<std::unique_ptr<Request>> AstroCamera::allocateStream(StreamConfigur
         if (cookie == STILL_CAPTURE_COOKIE)
         {
             ControlList &controls = request->controls();
-            controls.set(controls::ExposureTime, (int32_t)10000);
-            controls.set(controls::AnalogueGain, (float)8.0); // ISO800
+//            controls.set(controls::ExposureTime, (int32_t)10000);
+//            controls.set(controls::AnalogueGain, (float)8.0); // ISO800
         }
 
         const std::unique_ptr<FrameBuffer> &buffer = buffers[i];

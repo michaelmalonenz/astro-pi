@@ -42,8 +42,6 @@
 using namespace libcamera;
 using namespace std::chrono_literals;
 
-#define TIMEOUT_SEC 3
-
 static std::unique_ptr<AstroCamera> astro_cam;
 static EventLoop loop;
 
@@ -211,11 +209,7 @@ int main()
     astro_cam = std::make_unique<AstroCamera>(camera, &requestComplete);
     astro_cam->start();
 
-    loop.timeout(TIMEOUT_SEC);
     int ret = loop.exec();
-    std::cout << "Capture ran for " << TIMEOUT_SEC << " seconds and "
-              << "stopped with exit status: " << ret << std::endl;
-
     astro_cam.reset();
 
     cm->stop();
