@@ -3,8 +3,8 @@
 
 using namespace libcamera;
 
-AstroCamera::AstroCamera(std::shared_ptr<Camera> camera, process_request_t processRequest)
-    : m_camera(camera), m_request_processor(processRequest)
+AstroCamera::AstroCamera(std::shared_ptr<Camera> camera, process_request_t processRequest, uint16_t width, uint16_t height)
+    : m_camera(camera), m_request_processor(processRequest), m_display_width(width), m_display_height(height)
 {
     m_allocator = std::make_unique<FrameBufferAllocator>(m_camera);
     m_camera->requestCompleted.connect(m_request_processor);
@@ -38,8 +38,8 @@ void AstroCamera::start()
     std::cout << "Default ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
 
     viewFinderStreamConfig.pixelFormat = libcamera::formats::RGB888;
-    viewFinderStreamConfig.size.width = 320;
-    viewFinderStreamConfig.size.height = 240;
+    viewFinderStreamConfig.size.width = m_display_width;
+    viewFinderStreamConfig.size.height = m_display_height;
 
     m_viewfinder_config->validate();
     std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
@@ -105,7 +105,6 @@ void AstroCamera::requestStillFrame()
 {
     for (std::unique_ptr<Request> &request : m_still_requests)
     {
-        std::cout << "Queuing Still Request" << std::endl;
         m_camera->queueRequest(request.get());
     }
 }

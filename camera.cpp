@@ -192,21 +192,29 @@ int main()
     std::unique_ptr<Button> shutter = std::make_unique<Button>(BUTTON_GPIO_PIN, &shutterButtonPress);
 #endif
 
+uint16_t width = 0;
+uint16_t height = 0;
 #if USE_SSD1351_DISPLAY
     //                                                   cs, dc, rst
     display = std::make_unique<Ssd1351>("/dev/spidev0.0", 8,  5,  6);
+    width = 128;
+    height = 128;
 #elif USE_ILI9341_DISPLAY
     //                                                   cs, dc, rst
     display = std::make_unique<ILI9341>("/dev/spidev0.0", 8, 25, 27);
+    width = 320;
+    height = 240;
 #elif USE_TP28017_DISPLAY
     //                                  cs, rs, rd, wr, rst)
     display = std::make_unique<Tp28017>(19, 16, 20, 26,   5);
+    width = 320;
+    height = 240;
 #endif
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY || USE_ILI9341_DISPLAY
     display->fillWithColour(0xff0000);
 #endif
 
-    astro_cam = std::make_unique<AstroCamera>(camera, &requestComplete);
+    astro_cam = std::make_unique<AstroCamera>(camera, &requestComplete, width, height);
     astro_cam->start();
 
     int ret = loop.exec();
