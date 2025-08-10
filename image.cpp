@@ -213,6 +213,7 @@ std::vector<uint8_t> Image::dataAsBGR888()
         result.push_back((uint8_t)plane[i+2]);
     }
     return result;
+    //320x240-YUYV/sYCC
 }
 
 
@@ -230,6 +231,7 @@ void Image::writeToFile(std::string filename)
 {
     auto plane = planes_[0];
     std::vector<uint8_t> result;
+    // 4056x3040-YUV420/sYCC  
     for (int i = 0; i < plane.size(); i+=4) {
         uint8_t red = plane[i+2];
         uint8_t green = plane[i+1];
