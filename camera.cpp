@@ -44,6 +44,7 @@ using namespace std::chrono_literals;
 
 static std::unique_ptr<AstroCamera> astro_cam;
 static EventLoop loop;
+static uint32_t frame_count;
 
 #if USE_SSD1351_DISPLAY || USE_ILI9341_DISPLAY
 static std::unique_ptr<Display> display;
@@ -107,6 +108,7 @@ static void processRequest(Request *request)
             auto rgbData = image->dataAsBGR888();
             auto data = libcamera::Span(rgbData.data(), rgbData.size());
             display->drawImage(data);
+            frame_count++;
         }
 #endif
 #if WRITE_IMAGES_TO_FILE
