@@ -9,6 +9,7 @@
 #define STBIW_WINDOWS_UTF8
 #include "stb_image.h"
 #include "stb_image_write.h"
+#include "Magick++.h"
 
 #include "image.h"
 
@@ -267,16 +268,24 @@ static uint8_t color565_to_b(uint16_t color) {
 void Image::writeToFile(std::string filename)
 {
     auto plane = planes_[0];
-    std::vector<uint8_t> result;
-    // 4056x3040-YUV420/sYCC  
-    for (int i = 0; i < plane.size(); i+=4) {
-        uint8_t red = plane[i+2];
-        uint8_t green = plane[i+1];
-        uint8_t blue = plane[i];
-        result.push_back(red);
-        result.push_back(green);
-        result.push_back(blue);
-    }
+    // std::vector<uint8_t> result;
+    // // 4056x3040-YUV420/sYCC
+    // for (int i = 0; i < plane.size(); i+=4) {
+    //     uint8_t red = plane[i+2];
+    //     uint8_t green = plane[i+1];
+    //     uint8_t blue = plane[i];
+    //     result.push_back(red);
+    //     result.push_back(green);
+    //     result.push_back(blue);
+    // }
 
-    stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, result.data(), JPEG_IMAGE_QUALITY);
+    Magick::Blob blob(plane.data(), plane.size_bytes());
+    Magick::Geometry geo(m_width, m_height);
+    Magick::Image image;
+    image.size(geo);
+    image.magick("YUV420");
+    image.read(blob);
+    image.write(filename);
+
+    // stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, result.data(), JPEG_IMAGE_QUALITY);
 }

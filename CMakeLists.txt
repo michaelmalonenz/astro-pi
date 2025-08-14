@@ -24,6 +24,8 @@ message(STATUS "    version: ${LIBEVENT_VERSION}")
 message(STATUS "    libraries: ${LIBEVENT_LINK_LIBRARIES}")
 message(STATUS "    include path: ${LIBEVENT_INCLUDE_DIRS}")
 
+find_package(ImageMagick COMPONENTS Magick++)
+
 add_executable(astro-pi
     button.cpp
     camera.cpp
@@ -38,7 +40,7 @@ add_executable(astro-pi
 
 add_subdirectory(spidevpp)
 
-target_link_libraries(astro-pi PRIVATE PkgConfig::LIBEVENT PkgConfig::LIBCAMERA spidevpp wiringPi)
+target_link_libraries(astro-pi PRIVATE PkgConfig::LIBEVENT PkgConfig::LIBCAMERA spidevpp wiringPi ImageMagick::Magick++)
 include_directories(${CMAKE_SOURCE_DIR} ${LIBCAMERA_INCLUDE_DIRS} ${LIBEVENT_INCLUDE_DIRS})
 target_include_directories(astro-pi PRIVATE
     "/usr/include/libcamera"
