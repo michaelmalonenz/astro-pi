@@ -119,6 +119,7 @@ static void processRequest(Request *request)
         if (request->cookie() == STILL_CAPTURE_COOKIE)
         {
             // Get SD Card working. Write it there.
+            // Also, farm this off to a new thread.
             std::stringstream ss;
             ss << "stills/frame" << std::setw(6) << std::setfill('0') << metadata.sequence << ".jpg";
             image->writeToFile(ss.str());
@@ -131,10 +132,12 @@ static void processRequest(Request *request)
     {
         astro_cam->queueRequest(request);
     }
+#ifdef __ARM_ARCH
     else
     {
         astro_cam->startPreview();
     }
+#endif
 }
 
 static void requestComplete(Request *request)

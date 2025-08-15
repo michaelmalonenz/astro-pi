@@ -29,31 +29,40 @@ AstroCamera::~AstroCamera()
 
 void AstroCamera::start()
 {
-    m_config = m_camera->generateConfiguration({StreamRole::Viewfinder, StreamRole::StillCapture});
+#ifdef __ARM_ARCH
+    m_config = m_camera->generateConfiguration({StreamRole::StillCapture, StreamRole::Viewfinder});
+#else
+    m_config = m_camera->generateConfiguration({StreamRole::StillCapture});
+#endif
     if (m_config == NULL)
     {
         throw std::runtime_error{"Unable to generate configuration"};
     }
-    StreamConfiguration &viewFinderStreamConfig = m_config->at(0);
+    StreamConfiguration &stillConfig = m_config->at(0);
+    stillConfig.pixelFormat = libcamera::formats::RGB888;
+#ifdef __ARM_ARCH
+    StreamConfiguration &viewFinderStreamConfig = m_config->at(1);
     std::cout << "Default ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
 
     viewFinderStreamConfig.pixelFormat = libcamera::formats::RGB888;
     viewFinderStreamConfig.size.width = m_display_width;
     viewFinderStreamConfig.size.height = m_display_height;
-
-    StreamConfiguration &stillConfig = m_config->at(1);
-    stillConfig.pixelFormat = libcamera::formats::RGB888;
-
+#endif
     m_config->validate();
-    std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
     if (m_camera->configure(m_config.get()) < 0)
     {
         throw std::runtime_error("Failed to configure camera");
     }
-    m_viewfinder_requests = allocateStream(m_config->at(0), VIEWFINDER_COOKIE);
-    m_still_requests = allocateStream(m_config->at(1), STILL_CAPTURE_COOKIE);
+
+#ifdef __ARM_ARCH
+    std::cout << "Validated ViewFinder configuration is: " << viewFinderStreamConfig.toString() << std::endl;
+    m_viewfinder_requests = allocateStream(viewFinderStreamConfig, VIEWFINDER_COOKIE);
+#endif
+    m_still_requests = allocateStream(stillConfig, STILL_CAPTURE_COOKIE);
     m_camera->start();
+#ifdef __ARM_ARCH
     startPreview();
+#endif
 }
 
 void AstroCamera::startPreview()
