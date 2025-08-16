@@ -3,7 +3,7 @@
 
 static void buttonISR(struct WPIWfiStatus status, void *data)
 {
-    ((isr_callback_t)data)();
+    ((isr_callback_t)data)(status.pinBCM);
 }
 
 Button::Button(uint8_t gpio_pin, isr_callback_t callback) : m_pin(gpio_pin) {

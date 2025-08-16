@@ -3,7 +3,7 @@
 #include <bits/stdc++.h>
 #include <wiringPi.h>
 
-typedef void(*isr_callback_t)(void);
+typedef void(*isr_callback_t)(int pin);
 
 class Button {
     uint8_t m_pin;

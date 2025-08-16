@@ -8,6 +8,10 @@
 #include <cstdio>
 #include <fcntl.h>
 
+#ifndef __ARM_ARCH
+#include <signal.h>
+#endif
+
 #define USE_SSD1351_DISPLAY (0)
 #define USE_TP28017_DISPLAY (0)
 #ifdef __ARM_ARCH
@@ -151,13 +155,12 @@ static void requestComplete(Request *request)
     loop.callLater(std::bind(&processRequest, request));
 }
 
-
-void deferredStillRequest()
+static void deferredStillRequest()
 {
     astro_cam->requestStillFrame();
 }
 
-static void shutterButtonPress()
+static void shutterButtonPress(int pin_signal)
 {
     loop.callLater(deferredStillRequest);
 }
@@ -192,6 +195,8 @@ int main()
     wiringPiSetupGpio();
 
     std::unique_ptr<Button> shutter = std::make_unique<Button>(BUTTON_GPIO_PIN, &shutterButtonPress);
+#else
+    signal(SIGUSR1, &shutterButtonPress);
 #endif
 
 uint16_t width = 0;
