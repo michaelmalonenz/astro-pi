@@ -19,7 +19,6 @@
 #else
 #define USE_ILI9341_DISPLAY (0)
 #endif
-#define WRITE_IMAGES_TO_FILE (0)
 #define SHOW_IMAGE_METADATA (0)
 
 #define BUTTON_GPIO_PIN 6
@@ -114,11 +113,6 @@ static void processRequest(Request *request)
             display->drawImage(data);
             frame_count++;
         }
-#endif
-#if WRITE_IMAGES_TO_FILE
-        std::stringstream ss;
-        ss << "output/frame" << std::setw(6) << std::setfill('0') << metadata.sequence << ".jpg";
-        image->writeToFile(ss.str());
 #endif
         if (request->cookie() == STILL_CAPTURE_COOKIE)
         {

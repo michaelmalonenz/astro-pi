@@ -75,11 +75,11 @@ static PixelColourFormat getPixelFormat(const libcamera::PixelFormat& format)
 
 std::unique_ptr<Image> Image::fromFrameBuffer(const FrameBuffer *buffer, MapMode mode, const libcamera::StreamConfiguration& config)
 {
-    //  config.pixelFormat
     std::unique_ptr<Image> image{new Image()};
     image->m_width = config.size.width;
     image->m_height = config.size.height;
     image->m_format = getPixelFormat(config.pixelFormat);
+    image->m_stride = config.stride;
 
     assert(!buffer->planes().empty());
 
@@ -269,17 +269,19 @@ void Image::writeToFile(std::string filename)
 {
     auto thread = std::thread([this, filename]{
         auto plane = planes_[0];
-    //    std::vector<uint8_t> result;
-    //    for (int i = 0; i < plane.size(); i+=3) {
-    //        uint8_t red = plane[i+2];
-    //        uint8_t green = plane[i+1];
-    //        uint8_t blue = plane[i];
-    //        result.push_back(red);
-    //        result.push_back(green);
-    //        result.push_back(blue);
-    //    }
+       std::vector<uint8_t> result;
+       for (int i = 0; i < plane.size(); i+=3) {
+           uint8_t red = plane[i+2];
+           uint8_t green = plane[i+1];
+           uint8_t blue = plane[i];
+           result.push_back(red);
+           result.push_back(green);
+           result.push_back(blue);
+       }
 
-        stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, plane.data(), JPEG_IMAGE_QUALITY);
+       std::cout << "Width: " << m_width << " Height: " << m_height << " Stride: " << m_stride << std::endl;
+
+        stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, result.data(), JPEG_IMAGE_QUALITY);
 
     });
     thread.detach();

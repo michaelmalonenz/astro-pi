@@ -70,6 +70,7 @@ private:
     LIBCAMERA_DISABLE_COPY(Image)
     int m_width;
     int m_height;
+    unsigned int m_stride;
 
     Image();
 
