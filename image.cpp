@@ -267,22 +267,16 @@ static uint8_t color565_to_b(uint16_t color) {
 
 void Image::writeToFile(std::string filename)
 {
-    auto thread = std::thread([this, filename]{
-        auto plane = planes_[0];
-       std::vector<uint8_t> result;
-       for (int i = 0; i < plane.size(); i+=3) {
-           uint8_t red = plane[i+2];
-           uint8_t green = plane[i+1];
-           uint8_t blue = plane[i];
-           result.push_back(red);
-           result.push_back(green);
-           result.push_back(blue);
-       }
+    auto plane = planes_[0];
+    std::vector<uint8_t> result;
 
-       std::cout << "Width: " << m_width << " Height: " << m_height << " Stride: " << m_stride << std::endl;
+    for (int y = 0; y < m_height; y++) {
+        for (int x = 0; x < m_width*3; x+=3) {
+            result.push_back(plane[(y*m_stride) + x + 2]);
+            result.push_back(plane[(y*m_stride) + x + 1]);
+            result.push_back(plane[(y*m_stride) + x]);
+        }
+    }
 
-        stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, result.data(), JPEG_IMAGE_QUALITY);
-
-    });
-    thread.detach();
+    stbi_write_jpg(filename.c_str(), m_width, m_height, IMAGE_COLOUR_SPACE_BYTES, result.data(), JPEG_IMAGE_QUALITY);
 }
