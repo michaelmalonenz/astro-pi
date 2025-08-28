@@ -29,6 +29,7 @@
 #include "image.h"
 #include "button.hpp"
 #include "astro_camera.hpp"
+#include "image_writer.hpp"
 
 #if USE_SSD1351_DISPLAY
 #include "ssd1351.hpp"
@@ -116,11 +117,7 @@ static void processRequest(Request *request)
 #endif
         if (request->cookie() == STILL_CAPTURE_COOKIE)
         {
-            // Get SD Card working. Write it there.
-            // Also, farm this off to a new thread.
-            std::stringstream ss;
-            ss << "stills/frame" << std::setw(6) << std::setfill('0') << metadata.sequence << ".jpg";
-            image->writeToFile(ss.str());
+            enqueue_image(std::move(image));
         }
     }
 
@@ -218,8 +215,12 @@ uint16_t height = 0;
     astro_cam = std::make_unique<AstroCamera>(camera, &requestComplete, width, height);
     astro_cam->start();
 
+    start_image_processing();
+
     int ret = loop.exec();
     astro_cam.reset();
+
+    stop_image_processing();
 
     cm->stop();
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY || USE_ILI9341_DISPLAY

@@ -1,18 +1,20 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
-#include <memory>
-#include "image.h"
+#include <sstream>
+#include <iomanip>
+#include "image_writer.hpp"
 
-std::mutex queue_lock;
-std::condition_variable cond_var;
-std::queue<std::unique_ptr<Image>> queue;
-std::unique_ptr<std::thread> worker;
+static std::mutex queue_lock;
+static std::condition_variable cond_var;
+static std::queue<std::unique_ptr<Image>> queue;
+static std::unique_ptr<std::thread> worker;
+static int frame_number;
 
 void enqueue_image(std::unique_ptr<Image> image)
 {
-    const std::unique_lock lock(queue_lock);
-    queue.push(image);
+    std::unique_lock lock(queue_lock);
+    queue.push(std::move(image));
 
     lock.unlock();
     cond_var.notify_one();
@@ -20,7 +22,7 @@ void enqueue_image(std::unique_ptr<Image> image)
 
 static void process_images()
 {
-    const std::unique_lock lock(queue_lock);
+    std::unique_lock lock(queue_lock);
     while (true)
     {
         cond_var.wait(lock);
@@ -28,9 +30,13 @@ static void process_images()
             return;
         while (!queue.empty())
         {
-            std::unique_ptr<Image> image = queue.pop();
+            std::unique_ptr<Image> &image = queue.front();
             // figure out the filename
-            image->writeToFile("stills/output.jpg");
+            std::stringstream ss;
+            ss << "stills/frame" << std::setw(6) << std::setfill('0') << frame_number << ".jpg";
+            image->writeToFile(ss.str());
+            frame_number++;
+            queue.pop();
         }
         lock.unlock();
     }
@@ -38,6 +44,7 @@ static void process_images()
 
 void start_image_processing()
 {
+    // need to initialise frame_number to a reasonable value.
     worker = std::make_unique<std::thread>(process_images);
 }
 
@@ -45,4 +52,5 @@ void stop_image_processing()
 {
     cond_var.notify_one();
     worker->join();
+    worker.reset();
 }
