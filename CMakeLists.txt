@@ -34,6 +34,7 @@ add_executable(astro-pi
     tp28017.cpp
     display.cpp
     astro_camera.cpp
+    image_writer.cpp
 )
 
 add_subdirectory(spidevpp)
