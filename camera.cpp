@@ -103,11 +103,10 @@ static void processRequest(Request *request)
          * must be mapped by the application
          */
         auto &config = stream->configuration();
-        std::unique_ptr<Image> image = Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, config);
-
 #if USE_SSD1351_DISPLAY || USE_TP28017_DISPLAY || USE_ILI9341_DISPLAY
         if (request->cookie() == VIEWFINDER_COOKIE)
         {
+            std::unique_ptr<Image> image = Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, config);
             // auto rgbData = image->dataAsRGB565();
             auto rgbData = image->dataAsBGR888();
             auto data = libcamera::Span(rgbData.data(), rgbData.size());
@@ -117,6 +116,7 @@ static void processRequest(Request *request)
 #endif
         if (request->cookie() == STILL_CAPTURE_COOKIE)
         {
+            std::unique_ptr<Image> image = Image::fromFrameBuffer(buffer,  Image::MapMode::ReadWrite, config);
             enqueue_image(std::move(image));
         }
     }
