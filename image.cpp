@@ -150,6 +150,29 @@ std::unique_ptr<Image> Image::fromFrameBuffer(const FrameBuffer *buffer, MapMode
     return image;
 }
 
+std::unique_ptr<Image> Image::copyFromFrameBuffer(
+        const libcamera::FrameBuffer *buffer,
+        const libcamera::StreamConfiguration& config)
+{
+    std::unique_ptr<Image> result = Image::fromFrameBuffer(buffer, MapMode::ReadOnly, config);
+    for (auto &plane : result->planes_)
+    {
+        std::vector<uint8_t> dataBuffer;
+        dataBuffer.reserve(plane.size());
+        for (int i = 0; i < plane.size(); i++)
+        {
+            dataBuffer.push_back(plane[i]);
+        }
+        result->buffers_.push_back(dataBuffer);
+    }
+    result->planes_.clear();
+    for (auto &dataBuffer : result->buffers_)
+    {
+        result->planes_.emplace_back(dataBuffer.data(), dataBuffer.size());
+    }
+    return result;
+}
+
 Image::Image() = default;
 
 Image::~Image()

@@ -116,7 +116,7 @@ static void processRequest(Request *request)
 #endif
         if (request->cookie() == STILL_CAPTURE_COOKIE)
         {
-            std::unique_ptr<Image> image = Image::fromFrameBuffer(buffer,  Image::MapMode::ReadWrite, config);
+            std::unique_ptr<Image> image = Image::copyFromFrameBuffer(buffer, config);
             enqueue_image(std::move(image));
         }
     }

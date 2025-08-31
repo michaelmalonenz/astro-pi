@@ -55,6 +55,9 @@ public:
     static std::unique_ptr<Image> fromFrameBuffer(
         const libcamera::FrameBuffer *buffer, MapMode mode, const libcamera::StreamConfiguration& config);
 
+    static std::unique_ptr<Image> copyFromFrameBuffer(
+        const libcamera::FrameBuffer *buffer, const libcamera::StreamConfiguration& config);
+
     ~Image();
 
     unsigned int numPlanes() const;
@@ -76,6 +79,7 @@ private:
 
     std::vector<libcamera::Span<uint8_t>> maps_;
     std::vector<libcamera::Span<uint8_t>> planes_;
+    std::vector<std::vector<uint8_t>> buffers_;
     PixelColourFormat m_format;
 };
 
