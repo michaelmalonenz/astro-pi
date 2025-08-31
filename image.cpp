@@ -159,10 +159,7 @@ std::unique_ptr<Image> Image::copyFromFrameBuffer(
     {
         std::vector<uint8_t> dataBuffer;
         dataBuffer.reserve(plane.size());
-        for (int i = 0; i < plane.size(); i++)
-        {
-            dataBuffer.push_back(plane[i]);
-        }
+        dataBuffer.assign(plane.begin(), plane.end());
         result->buffers_.push_back(dataBuffer);
     }
     result->planes_.clear();
