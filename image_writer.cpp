@@ -38,7 +38,6 @@ static void process_images()
             frame_number++;
             queue.pop();
         }
-        lock.unlock();
     }
 }
 

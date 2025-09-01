@@ -127,12 +127,6 @@ static void processRequest(Request *request)
     {
         astro_cam->queueRequest(request);
     }
-#ifdef __ARM_ARCH
-    else
-    {
-        astro_cam->startPreview();
-    }
-#endif
 }
 
 static void requestComplete(Request *request)
