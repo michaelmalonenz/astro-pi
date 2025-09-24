@@ -21,7 +21,8 @@
 #endif
 #define SHOW_IMAGE_METADATA (0)
 
-#define BUTTON_GPIO_PIN 6
+#define SHUTTER_BUTTON_GPIO_PIN (6)
+#define MODE_SWITCH_GPIO_PIN (5)
 
 #include <libcamera/libcamera.h>
 #include <wiringPi.h>
@@ -49,6 +50,7 @@ using namespace std::chrono_literals;
 static std::unique_ptr<AstroCamera> astro_cam;
 static EventLoop loop;
 static uint32_t frame_count;
+static volatile bool night_mode = false;
 
 #if USE_SSD1351_DISPLAY || USE_ILI9341_DISPLAY
 static std::unique_ptr<Display> display;
@@ -107,9 +109,16 @@ static void processRequest(Request *request)
         if (request->cookie() == VIEWFINDER_COOKIE)
         {
             std::unique_ptr<Image> image = Image::fromFrameBuffer(buffer, Image::MapMode::ReadOnly, config);
-            // auto rgbData = image->dataAsRGB565();
-            auto rgbData = image->dataAsBGR888();
-            auto data = libcamera::Span(rgbData.data(), rgbData.size());
+            std::vector<uint8_t> imageData;
+            if (night_mode)
+            {
+                imageData = image->dataAsXXR888();
+            }
+            else
+            {
+                imageData = image->dataAsBGR888();
+            }
+            auto data = libcamera::Span(imageData.data(), imageData.size());
             display->drawImage(data);
             frame_count++;
         }
@@ -150,6 +159,11 @@ static void shutterButtonPress(int pin_signal)
     loop.callLater(deferredStillRequest);
 }
 
+static void modeButtonPress(int pin_signal)
+{
+    night_mode = !night_mode;
+}
+
 int main()
 {
     std::unique_ptr<CameraManager> cm = std::make_unique<CameraManager>();
@@ -179,9 +193,11 @@ int main()
     wiringPiSetup();
     wiringPiSetupGpio();
 
-    std::unique_ptr<Button> shutter = std::make_unique<Button>(BUTTON_GPIO_PIN, &shutterButtonPress);
+    std::unique_ptr<Button> shutter = std::make_unique<Button>(SHUTTER_BUTTON_GPIO_PIN, &shutterButtonPress);
+    std::unique_ptr<Button> mode_toggle = std::make_unique<Button>(MODE_BUTTON_GPIO_PIN, &modeButtonPress);
 #else
     signal(SIGUSR1, &shutterButtonPress);
+    signal(SIGUSR2, &modeButtonPress);
 #endif
 
 uint16_t width = 0;

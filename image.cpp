@@ -270,7 +270,45 @@ std::vector<uint8_t> Image::dataAsBGR888()
         }
     }
     return result;
-    //320x240-YUYV/sYCC
+}
+
+std::vector<uint8_t> Image::dataAsXXR888()
+{
+    std::vector<uint8_t> result;
+    auto plane = planes_[0];
+    if (m_format == PixelColourFormat::XRGB8888)
+    {
+        for (int i = 0; i < plane.size(); i+=4) {
+            result.push_back((uint8_t)plane[i]);
+            result.push_back(0);
+            result.push_back(0);
+        }
+    }
+    else if (m_format == PixelColourFormat::YUYV)
+    {
+        int y, u, v;
+        int uv_r/*, uv_g, uv_b*/;
+        for (int i = 0; i < plane.size(); i+=4) {
+            u=plane[i+1]-UV_OFFSET;
+            v=plane[i+3]-UV_OFFSET;
+            uv_r=YUV2RGB_12*u+YUV2RGB_13*v;
+            // uv_g=YUV2RGB_22*u+YUV2RGB_23*v;
+            // uv_b=YUV2RGB_32*u+YUV2RGB_33*v;
+
+            // 1st pixel
+            y=YUV2RGB_11*(plane[i] -Y_OFFSET);
+            result.push_back(CLIP((y + uv_r) >> 8)); // r
+            result.push_back(0); // g
+            result.push_back(0); // b
+
+            // 2nd pixel
+            y=YUV2RGB_11*(plane[i+2] -Y_OFFSET);
+            result.push_back(CLIP((y + uv_r) >> 8)); // r
+            result.push_back(0); // g
+            result.push_back(0); // b
+        }
+    }
+    return result;
 }
 
 

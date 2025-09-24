@@ -67,6 +67,7 @@ public:
     std::vector<uint8_t> dataAsRGB565();
     std::vector<uint8_t> dataAsRGB888();
     std::vector<uint8_t> dataAsBGR888();
+    std::vector<uint8_t> dataAsXXR888();
     void writeToFile(std::string filename);
 
 private:
