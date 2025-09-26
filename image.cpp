@@ -287,25 +287,34 @@ std::vector<uint8_t> Image::dataAsXXR888()
     else if (m_format == PixelColourFormat::YUYV)
     {
         int y, u, v;
-        int uv_r/*, uv_g, uv_b*/;
+        int uv_r, uv_g, uv_b;
+        int r, g, b;
         for (int i = 0; i < plane.size(); i+=4) {
             u=plane[i+1]-UV_OFFSET;
             v=plane[i+3]-UV_OFFSET;
             uv_r=YUV2RGB_12*u+YUV2RGB_13*v;
-            // uv_g=YUV2RGB_22*u+YUV2RGB_23*v;
-            // uv_b=YUV2RGB_32*u+YUV2RGB_33*v;
+            uv_g=YUV2RGB_22*u+YUV2RGB_23*v;
+            uv_b=YUV2RGB_32*u+YUV2RGB_33*v;
 
             // 1st pixel
             y=YUV2RGB_11*(plane[i] -Y_OFFSET);
-            result.push_back(CLIP((y + uv_r) >> 8)); // r
-            result.push_back(0); // g
-            result.push_back(0); // b
+            r = CLIP((y + uv_r) >> 8); // r
+            g = CLIP((y + uv_g) >> 8); // g
+            b = CLIP((y + uv_b) >> 8); // b
+
+            result.push_back((r + b + g) / 3);
+            result.push_back(0);
+            result.push_back(0);
 
             // 2nd pixel
             y=YUV2RGB_11*(plane[i+2] -Y_OFFSET);
-            result.push_back(CLIP((y + uv_r) >> 8)); // r
-            result.push_back(0); // g
-            result.push_back(0); // b
+            r = CLIP((y + uv_r) >> 8); // r
+            g = CLIP((y + uv_g) >> 8); // g
+            b = CLIP((y + uv_b) >> 8); // b
+
+            result.push_back((r + b + g) / 3);
+            result.push_back(0);
+            result.push_back(0);
         }
     }
     return result;

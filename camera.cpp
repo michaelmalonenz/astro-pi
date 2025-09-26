@@ -194,7 +194,7 @@ int main()
     wiringPiSetupGpio();
 
     std::unique_ptr<Button> shutter = std::make_unique<Button>(SHUTTER_BUTTON_GPIO_PIN, &shutterButtonPress);
-    std::unique_ptr<Button> mode_toggle = std::make_unique<Button>(MODE_BUTTON_GPIO_PIN, &modeButtonPress);
+    std::unique_ptr<Button> mode_toggle = std::make_unique<Button>(MODE_SWITCH_GPIO_PIN, &modeButtonPress);
 #else
     signal(SIGUSR1, &shutterButtonPress);
     signal(SIGUSR2, &modeButtonPress);
